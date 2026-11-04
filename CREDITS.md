@@ -21,7 +21,10 @@ in `docs/research/`.
 - **Godfried Toussaint**: Euclidean rhythms.
 - **Maria Witek and colleagues**: a medium amount of syncopation is where groove lives.
 - **Reinier Plomp, Willem Levelt and William Sethares**: consonance and roughness, measured.
-- **Google Magenta's Groove MIDI Dataset**: real drummers' timing, kept so it could be learned from.
+- **Google Magenta's Groove MIDI Dataset** (Jon Gillick, Adam Roberts, Jesse Engel, Douglas Eck and David Bamman,
+  "Learning to Groove with Inverse Sequence Transformations", ICML 2019; CC BY 4.0): real drummers' timing, kept so it
+  could be learned from. Since 2026-11-04 the lens drums are sampled from statistics learned from it
+  (`src/compose/groove_model.txt`, made by `tools/groove/learn.js`); no performance is copied.
 - **The McGill Billboard project and Open Music Theory**: harmony, annotated and taught in the open.
 - **Anders Friberg, Johan Sundberg, Roberto Bresin and Lars Frydén** (KTH, the Director Musices rule system): that a
   performance is a set of small, named, measurable rules. High Loud (3 dB per octave), melodic charge and its table, the

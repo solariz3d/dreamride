@@ -275,7 +275,7 @@ fn render_drum(song: &Song, voice: &Voice, drum: &Drum, seed: u64, st: &mut Drum
             }
             d.length_ms * 0.001
         }
-        None => drum.kind.length(),
+        None => drum.noise.as_ref().map_or(drum.kind.length(), |n| n.length_ms * 0.001),
     };
     let len = (secs * rate).ceil() as i64;
     let n = sp.n;
@@ -312,7 +312,7 @@ fn render_drum(song: &Song, voice: &Voice, drum: &Drum, seed: u64, st: &mut Drum
         if st.hits.is_empty() {
             continue;
         }
-        let s: f64 = st.hits.iter().map(|h| h.amp * drum_sample(drum.kind, drum.dash.as_ref(), (i64i - h.start) as usize, rate, h.seed)).sum();
+        let s: f64 = st.hits.iter().map(|h| h.amp * drum_sample(drum.kind, drum.dash.as_ref(), drum.noise.as_ref(), (i64i - h.start) as usize, rate, h.seed)).sum();
         out.x[i] = s;
         out.written[i] = true;
     }
@@ -734,6 +734,10 @@ pub struct Stream {
     pub seed: u64,
     pub origin: String,
     composer_seed_text: String,
+    /// The generator version composing this stream (compose::stream::GENERATOR_VERSION unless started at another).
+    pub version: u32,
+    /// What started it, so a seed file can start it again.
+    started_by: Seed,
 }
 
 struct Work {
@@ -796,11 +800,18 @@ impl Stream {
     /// Start a stream: stage 1 is composed and rendered before this returns, then a worker keeps `lookahead` (at
     /// least 1) stages ahead. `step` is the trace step in samples (0: one frame per millisecond).
     pub fn start(seed: Seed, lookahead: u64, step: usize) -> Result<Stream, String> {
+        Stream::start_version(seed, crate::compose::stream::GENERATOR_VERSION, lookahead, step)
+    }
+
+    /// As [`Stream::start`], composed by generator `version` (a seed file's): the same seed and version replay the same
+    /// song, every stage and every instrument.
+    pub fn start_version(seed: Seed, version: u32, lookahead: u64, step: usize) -> Result<Stream, String> {
+        let started_by = seed.clone();
         let seed_text = match &seed {
             Seed::Song { text, .. } => text.clone(),
             Seed::Grammar(_) | Seed::Book(_) | Seed::Species(_) | Seed::Named { .. } | Seed::Explore(_) => String::new(),
         };
-        let composer = Composer::new(seed)?;
+        let composer = Composer::with_version(seed, version)?;
         let roster = composer.roster().to_vec();
         let roster_song = Song::parse(&composer.roster_song_text()).map_err(|e| format!("the stream's voices: {e}"))?;
         let first = Song::parse(&composer.stage(0).expect("stage 0").text).map_err(|e| e.to_string())?;
@@ -864,7 +875,21 @@ impl Stream {
             seed: seed_n,
             origin,
             composer_seed_text: seed_text,
+            version,
+            started_by,
         })
+    }
+
+    /// This stream as a seed file ([`seed_file_text`]): opening it replays the whole stream exactly.
+    pub fn seed_file(&self) -> Result<String, String> {
+        seed_file_text(&self.started_by, self.version, &self.origin)
+    }
+
+    /// Write the stream's seed file to `path`.
+    pub fn save_seed(&self, path: &std::path::Path) -> Result<String, String> {
+        let text = self.seed_file()?;
+        std::fs::write(path, &text).map_err(|e| format!("cannot write {}: {e}", path.display()))?;
+        Ok(text)
     }
 
     pub fn stage_start(&self, k: u64) -> u64 {
@@ -1074,6 +1099,16 @@ fn rename(expr: &str, map: &HashMap<String, String>, time: &str, params: &[Strin
 /// free of `t` are shared and keep their names), its time is `T_i = t - 32 i`, and every voice's functions choose
 /// stage i's by `Q = floor(t / 32)`. Voice settings (gain, envelope, timbre) are the last stage's that has the voice.
 pub fn save_text(stages: &[Stage], roster: &[String], origin: &str, seed: u64) -> Result<String, String> {
+    // What was heard: each stage's played text, whose voices wear the song's drawn instruments (compose/timbre.rs), not
+    // the undressed equation the composer composes from. Saving the undressed one lost the instruments (2026-11-04).
+    let played = stages
+        .iter()
+        .map(|s| {
+            let eq = crate::compose::stream::parse_equation(&s.text).map_err(|e| format!("stage {}: {e}", s.index + 1))?;
+            Ok(Stage { eq, ..s.clone() })
+        })
+        .collect::<Result<Vec<Stage>, String>>()?;
+    let stages = &played[..];
     let count = stages.len();
     if count == 0 {
         return Err("nothing to save".into());
@@ -1185,4 +1220,66 @@ pub fn save_text(stages: &[Stage], roster: &[String], origin: &str, seed: u64) -
     }
     Song::parse(&text).map_err(|e| format!("the saved song does not parse: {e}"))?;
     Ok(text)
+}
+
+// ------------------------------------------------------------------------------------------------ seed files
+
+/// A seed file: what starts a stream and the generator version that composes it, so opening it replays the whole song
+/// (every stage, every instrument), not one saved stretch. Plain text, one key a line, `#` comments:
+///
+/// ```text
+/// # Dreamride seed: the automaton species, seed 152637
+/// seed 152637
+/// kind species
+/// version 1
+/// ```
+///
+/// `kind` is `species`, `book` (the lens), `explore`, `grammar`, or `named` with a `species NAME` line. A stream started
+/// from a song's text has no seed file: its song is saved as a song.
+pub fn seed_file_text(seed: &Seed, version: u32, origin: &str) -> Result<String, String> {
+    let (kind, n, species) = match seed {
+        Seed::Species(n) => ("species", *n, None),
+        Seed::Book(n) => ("book", *n, None),
+        Seed::Explore(n) => ("explore", *n, None),
+        Seed::Grammar(n) => ("grammar", *n, None),
+        Seed::Named { species, seed } => ("named", *seed, Some(species.as_str())),
+        Seed::Song { .. } => return Err("a stream started from a song has no seed file; save its stages as a song".into()),
+    };
+    let mut t = format!("# Dreamride seed: {origin}. Opening this file replays the whole stream, at generator version {version}.\nseed {n}\nkind {kind}\n");
+    if let Some(sp) = species {
+        t += &format!("species {sp}\n");
+    }
+    t += &format!("version {version}\n");
+    Ok(t)
+}
+
+/// Read a seed file: the seed that starts the stream and its generator version. Errors name the line.
+pub fn read_seed_file(text: &str) -> Result<(Seed, u32), String> {
+    let (mut seed, mut kind, mut version, mut species) = (None, None, None, None);
+    for (i, raw) in text.lines().enumerate() {
+        let line = raw.split('#').next().unwrap_or("").trim();
+        if line.is_empty() {
+            continue;
+        }
+        let (k, v) = line.split_once(char::is_whitespace).map(|(k, v)| (k, v.trim())).ok_or_else(|| format!("line {}: '{line}' has no value", i + 1))?;
+        let num = |v: &str| v.parse::<u64>().map_err(|_| format!("line {}: '{v}' is not a whole number", i + 1));
+        match k {
+            "seed" => seed = Some(num(v)?),
+            "kind" => kind = Some(v.to_string()),
+            "version" => version = Some(num(v)? as u32),
+            "species" => species = Some(v.to_string()),
+            _ => return Err(format!("line {}: unknown key '{k}' (seed, kind, version, species)", i + 1)),
+        }
+    }
+    let n = seed.ok_or("a seed file needs a 'seed' line")?;
+    let version = version.ok_or("a seed file needs a 'version' line")?;
+    let seed = match kind.as_deref().ok_or("a seed file needs a 'kind' line")? {
+        "species" => Seed::Species(n),
+        "book" => Seed::Book(n),
+        "explore" => Seed::Explore(n),
+        "grammar" => Seed::Grammar(n),
+        "named" => Seed::Named { species: species.ok_or("kind named needs a 'species' line")?, seed: n },
+        other => return Err(format!("unknown kind '{other}' (species, book, explore, grammar, named)")),
+    };
+    Ok((seed, version))
 }

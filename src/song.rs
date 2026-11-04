@@ -90,6 +90,17 @@ pub struct Drum {
     pub amp: Option<Expr>,
     /// The sweep's shape, for `DrumKind::Dash` only.
     pub dash: Option<Dash>,
+    /// A noise drum's shape (`kind = hat` or `kind = snare`) when `decay` or `length` is given; else the built-in one.
+    pub noise: Option<Noise>,
+}
+
+/// The shape of a noise drum when its block gives `decay` or `length` (since 2026-11-04, for kits drawn per song): the
+/// noise falls by 1/e per `decay_ms` and the hit is cut at `length_ms`. A field it omits keeps the built-in value
+/// (hat 25 ms and 120 ms, snare 70 ms and 300 ms), so a block with neither sounds exactly as before.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Noise {
+    pub decay_ms: f64,
+    pub length_ms: f64,
 }
 
 #[derive(Debug, Clone)]
@@ -547,14 +558,28 @@ fn build_voice(b: Block, program: &Program) -> Result<Voice, Error> {
                     rolloff_hz: number("rolloff", 0.0, &rolloff_ok, "0 (off) or between 1 and 20000 Hz")?,
                 })
             } else {
+                // a noise drum (hat, snare) may shape its decay and length; nothing else here takes a dash's fields
+                let noisy = matches!(kind, DrumKind::Hat | DrumKind::Snare);
                 for key in ["from", "to", "dash", "hold", "decay", "length", "partials", "rolloff"] {
+                    if noisy && (key == "decay" || key == "length") {
+                        continue;
+                    }
                     if let Some(f) = get(key) {
                         return Err(Error::line(f.line, format!("`{key}` in {label} needs `kind = dash`")));
                     }
                 }
                 None
             };
-            VoiceKind::Drum(Drum { kind, trigger: timing(need("trigger")?)?, amp, dash })
+            let noise = if matches!(kind, DrumKind::Hat | DrumKind::Snare) && (get("decay").is_some() || get("length").is_some()) {
+                let (d, l) = if kind == DrumKind::Hat { (25.0, 120.0) } else { (70.0, 300.0) };
+                Some(Noise {
+                    decay_ms: number("decay", d, &|v| (0.1..=10_000.0).contains(&v), "between 0.1 and 10000 ms")?,
+                    length_ms: number("length", l, &|v| (1.0..=10_000.0).contains(&v), "between 1 and 10000 ms")?,
+                })
+            } else {
+                None
+            };
+            VoiceKind::Drum(Drum { kind, trigger: timing(need("trigger")?)?, amp, dash, noise })
         }
     };
     Ok(Voice { name: b.name, kind, gain, pan, reverb, delay, line: b.line })

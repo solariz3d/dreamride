@@ -1,0 +1,104 @@
+# Saved from a Dreamride stream (from the automaton species, seed 152637, seed 152637): stages 1 to 2, 16 bars.
+#
+# Stage 1: the seed opens with the clap and perc.
+# Stage 2: build: the lead comes in, playing automaton/lead.runs.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 89
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 64
+
+Q = floor(t / 32)
+K = 0
+c = 5
+h(d) = K + floor((12d + c) / 7)
+Wz = 1
+Hm = 7
+Ho = -1
+Hb = 1166442200553322
+Hx = 3333334444441143
+Hy = 2255555577553333
+Hz = 6688448888884466
+Cq(x) = ca(90, x, 10)
+Ct(n) = iter(Cq, 513, mod(n, 6))
+T_0 = t - 0
+S_0 = 0
+Wr_0 = 45
+rn_0 = 8 S_0 + floor(T_0 / 4)
+Cc_0 = (mod(mod(floor(2.5T_0), 10), 4) == 0)(mod(floor(2.5T_0), 10) > 0)(0.5 - frac(2.5T_0))
+Cd_0 = mod(floor(Ct(rn_0) / 2^mod(floor(2.5T_0), 10)), 2) (0.5 - frac(2.5T_0))
+n_0 = floor(4T_0)
+T_1 = t - 32
+S_1 = 1
+Wr_1 = 30
+Sx_1(x) = ca(Wr_1, x, 10)
+Rw_1(n) = iter(Sx_1, Wz, n)
+rn_1 = 8 S_1 + floor(T_1 / 4)
+cl_1(n, i) = mod(floor(Rw_1(n) / 2^mod(i, 10)), 2)
+hd_1(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_1(i) = K + mod((hd_1(Hb, i) + Ho) Hm, 12)
+Hv_1(m, i) = K + 6m - 16 + hd_1(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+nr_1(x, p) = p + 12 floor((x - p) / 12 + 0.5)
+mn_1(x, a, b) = if(abs(x - a) <= abs(x - b), a, b)
+sc_1(x, i) = mn_1(x, mn_1(x, nr_1(x, Hr_1(i)), nr_1(x, Hv_1(0, i))), mn_1(x, nr_1(x, Hv_1(1, i)), nr_1(x, Hv_1(2, i))))
+hs_1(d, k, p) = if(mod(k, p) == 0, sc_1(h(d), floor(k / p)), h(d))
+Cr_1(k) = cl_1(rn_1, floor(k / 2)) (1 + cl_1(rn_1, floor(k / 2) + 9) + cl_1(rn_1, floor(k / 2) + 8))
+Cn_1 = hs_1(5 + 2 Cr_1(mod(floor(5T_1), 20)) + mod(floor(5T_1), 2), floor(5T_1), 10)
+Cg_1 = (Cr_1(mod(floor(5T_1), 20)) > 0)(0.6 - frac(5T_1))
+Cc_1 = (mod(mod(floor(2.5T_1), 10), 4) == 0)(mod(floor(2.5T_1), 10) > 0)(0.5 - frac(2.5T_1))
+Cd_1 = mod(floor(Ct(rn_1) / 2^mod(floor(2.5T_1), 10)), 2) (0.5 - frac(2.5T_1))
+n_1 = floor(4T_1)
+b_1 = frac(T_1)
+
+voice lead {
+  pitch = if(Q == 0, 0, Cn_1)
+  gate = if(Q == 0, 0, Cg_1)
+  gain = 0.1109
+  pan = 0.12
+  reverb = 0.3
+  delay = 0.25
+  wave = additive
+  partials = 0, -12.4, -6.5, -16.6, -11.7, -21.8, -16, -25.3, -18.8, -27.5, -20.7
+  rolloff = 660
+  attack = 21.88
+  decay = 411.92
+  sustain = 0.62
+  release = 225.66
+  cutoff = if(Q == 0, 0, 5306.17)
+}
+
+drum clap {
+  kind = dash
+  trigger = if(Q == 0, Cc_0, Cc_1)
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+drum perc {
+  kind = dash
+  trigger = if(Q == 0, Cd_0, Cd_1)
+  from = 300
+  to = 120
+  dash = 15
+  hold = 10
+  decay = 70
+  length = 300
+  partials = 0, -10, -18, -22
+  rolloff = 660
+  gain = 0.3
+  pan = -0.2
+  reverb = 0.25
+}

@@ -336,11 +336,24 @@ fn add_harmony(book: &mut Book) -> Result<(), String> {
     Ok(())
 }
 
+/// The style the lens book's drums are sampled from (groove_model.txt: funk, soul, pop and disco drummers).
+pub const GROOVE_STYLE: &str = "citypop";
+/// How many grooves the lens book holds; each gives up to four drum modules (kick, clap, hat, perc).
+pub const GROOVES: u64 = 24;
+
 /// Every species' book, parsed once, the lens first.
 pub fn all() -> &'static [Book] {
     static BOOKS: OnceLock<Vec<Book>> = OnceLock::new();
     BOOKS.get_or_init(|| {
-        SPECIES_TEXTS.iter().map(|t| parse(t).unwrap_or_else(|e| panic!("a species book does not parse (tests/species.rs): {e}"))).collect()
+        SPECIES_TEXTS
+            .iter()
+            .enumerate()
+            .map(|(i, t)| {
+                // the lens (city pop) plays drums sampled from real drummers, not the written ones (groove.rs)
+                let text = if i == 0 { super::groove::replace_drums(t, GROOVE_STYLE, GROOVES) } else { t.to_string() };
+                parse(&text).unwrap_or_else(|e| panic!("a species book does not parse (tests/species.rs): {e}"))
+            })
+            .collect()
     })
 }
 

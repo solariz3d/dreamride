@@ -13,7 +13,7 @@
 
 use crate::error::Error;
 use crate::expr::At;
-use crate::song::{Dash, Drum, DrumKind, Song, Tonal, Voice, VoiceKind, Wave};
+use crate::song::{Dash, Drum, DrumKind, Noise, Song, Tonal, Voice, VoiceKind, Wave};
 use std::f64::consts::{FRAC_PI_4, TAU};
 
 /// The normalisation ceiling: -1 dBFS.
@@ -483,7 +483,7 @@ pub(crate) fn splitmix64(mut z: u64) -> u64 {
 
 /// Deterministic white noise in [-1, 1): sample `n` of the stream `seed`.
 #[inline]
-fn noise(seed: u64, n: u64) -> f64 {
+fn noise_at(seed: u64, n: u64) -> f64 {
     let bits = splitmix64(seed ^ n.wrapping_mul(0xD1B5_4A32_D192_ED03)) >> 11;
     bits as f64 / (1u64 << 53) as f64 * 2.0 - 1.0
 }
@@ -528,11 +528,12 @@ fn dash_sample(d: &Dash, tau: f64, rate: f64) -> f64 {
 }
 
 /// One sample of a drum hit, `age` samples after its onset.
-pub(crate) fn drum_sample(kind: DrumKind, dash: Option<&Dash>, age: usize, rate: f64, seed: u64) -> f64 {
+pub(crate) fn drum_sample(kind: DrumKind, dash: Option<&Dash>, noise: Option<&Noise>, age: usize, rate: f64, seed: u64) -> f64 {
     let tau = age as f64 / rate;
-    let len = match dash {
-        Some(d) => d.length_ms * 0.001,
-        None => kind.length(),
+    let len = match (dash, noise) {
+        (Some(d), _) => d.length_ms * 0.001,
+        (None, Some(n)) => n.length_ms * 0.001,
+        (None, None) => kind.length(),
     };
     // A short linear fade over the last 10% so a hit ends at exactly zero, without a click.
     let fade = ((len - tau) / (0.1 * len)).clamp(0.0, 1.0);
@@ -547,7 +548,7 @@ pub(crate) fn drum_sample(kind: DrumKind, dash: Option<&Dash>, age: usize, rate:
         }
         DrumKind::Snare => {
             let attack = (tau / 0.001).min(1.0);
-            let rattle = noise(seed, n) * 0.6 * (-tau / 0.07).exp() * attack;
+            let rattle = noise_at(seed, n) * 0.6 * (-tau / noise.map_or(0.07, |x| x.decay_ms * 0.001)).exp() * attack;
             let body = (TAU * 185.0 * tau).sin() * 0.5 * (-tau / 0.05).exp();
             rattle + body
         }
@@ -555,8 +556,8 @@ pub(crate) fn drum_sample(kind: DrumKind, dash: Option<&Dash>, age: usize, rate:
         DrumKind::Hat => {
             // First difference of white noise: a simple high-pass.
             let attack = (tau / 0.0005).min(1.0);
-            let hp = (noise(seed, n) - noise(seed, n.wrapping_sub(1))) * 0.5;
-            hp * 0.8 * (-tau / 0.025).exp() * attack
+            let hp = (noise_at(seed, n) - noise_at(seed, n.wrapping_sub(1))) * 0.5;
+            hp * 0.8 * (-tau / noise.map_or(0.025, |x| x.decay_ms * 0.001)).exp() * attack
         }
     };
     s * fade
@@ -588,7 +589,7 @@ fn render_drum(
             }
             d.length_ms * 0.001
         }
-        None => drum.kind.length(),
+        None => drum.noise.as_ref().map_or(drum.kind.length(), |n| n.length_ms * 0.001),
     };
     let len = (secs * rate).ceil() as usize;
     let mut hits: Vec<Hit> = Vec::new();
@@ -620,7 +621,7 @@ fn render_drum(
         if hits.is_empty() {
             continue;
         }
-        let s: f64 = hits.iter().map(|h| h.amp * drum_sample(drum.kind, drum.dash.as_ref(), i - h.start, rate, h.seed)).sum();
+        let s: f64 = hits.iter().map(|h| h.amp * drum_sample(drum.kind, drum.dash.as_ref(), drum.noise.as_ref(), i - h.start, rate, h.seed)).sum();
         out.add(i, s);
     }
     Ok(())

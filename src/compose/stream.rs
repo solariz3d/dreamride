@@ -1831,10 +1831,40 @@ pub struct Composer {
     homing: bool,
     /// The stream may change species at a new arc.
     wander: bool,
+    /// The song's instruments, drawn once by its generator version; none for a stream that keeps its written ones.
+    instruments: Instruments,
+    /// The generator version this stream was composed by ([`GENERATOR_VERSION`] unless asked for an older one).
+    version: u32,
+}
+
+/// The generators' version: a seed plus its version is a song, forever. Any change to how a stream is composed or
+/// dressed that alters what an existing version plays is a NEW version, and the old one is kept frozen beside it
+/// (docs/versions.md); `tests/versions.rs` holds version 1 to the keeper's saved seed byte for byte.
+/// - 1: the instruments of 2026-11-04 05:45 (`timbre_v1.rs`), the build seed 152637 was heard on.
+/// - 2: drawn kits, a drawn rolloff, held-lead filters (`timbre.rs`).
+pub const GENERATOR_VERSION: u32 = 2;
+/// Every version a stream can be started at.
+pub const GENERATOR_VERSIONS: [u32; 2] = [1, 2];
+
+/// A song's drawn instruments, by the generator version that drew them.
+#[derive(Debug, Clone)]
+enum Instruments {
+    None,
+    V1(super::timbre_v1::Palette),
+    V2(super::timbre::Palette),
 }
 
 impl Composer {
     pub fn new(seed: Seed) -> Result<Composer, String> {
+        Composer::with_version(seed, GENERATOR_VERSION)
+    }
+
+    /// A stream composed by generator `version` (one of [`GENERATOR_VERSIONS`]): the same seed and version always
+    /// compose and play the same song.
+    pub fn with_version(seed: Seed, version: u32) -> Result<Composer, String> {
+        if !GENERATOR_VERSIONS.contains(&version) {
+            return Err(format!("no generator version {version}; this build has {GENERATOR_VERSIONS:?}"));
+        }
         let (text, s, origin) = match seed.clone() {
             Seed::Song { text, seed } => {
                 let first = text.lines().next().unwrap_or("").trim_start_matches('#').trim().to_string();
@@ -1897,6 +1927,8 @@ impl Composer {
             first_lead: None,
             homing: false,
             wander,
+            instruments: Instruments::None,
+            version,
         };
         set_clock(&mut eq, 0);
         let summary = format!("the seed opens with {}", list(&layers(&eq)));
@@ -1907,6 +1939,15 @@ impl Composer {
         c.opening_prog = book::current(&eq, Slot::Progression).map(str::to_string);
         c.stages.push(Stage { index: 0, eq, text, changed: Vec::new(), summary, turn: true, score, role: Role::Intro, arc: 0, audibility: 0.0, closure: 0.0 });
         c.stages[0].closure = c.closure();
+        if c.dresses(&c.stages[0].eq) {
+            let full = c.roster_eq();
+            c.instruments = match version {
+                1 => Instruments::V1(super::timbre_v1::choose(s, &full).0),
+                _ => Instruments::V2(super::timbre::choose(s, &full).0),
+            };
+            let text = c.dressed(&c.stages[0].eq).song_text(&c.comment(0, &c.stages[0].summary));
+            c.stages[0].text = text;
+        }
         Ok(c)
     }
 
@@ -1933,6 +1974,34 @@ impl Composer {
 
     /// A song holding every roster voice (each as stage 1 or its stash has it), for the voices' fixed settings.
     pub fn roster_song_text(&self) -> String {
+        self.dressed(&self.roster_eq()).song_text("roster")
+    }
+
+    /// Whether a stage of this equation wears the song's drawn instruments: a book species, never an Explore tuning
+    /// (their sound is part of the tuning's idea).
+    fn dresses(&self, eq: &Equation) -> bool {
+        is_book(eq) && !book::of(eq).species.explore
+    }
+
+    /// `eq` in the song's instruments, when it has them and the species takes them; else `eq` as it is.
+    pub fn dressed(&self, eq: &Equation) -> Equation {
+        if !self.dresses(eq) {
+            return eq.clone();
+        }
+        match &self.instruments {
+            Instruments::V1(p) => super::timbre_v1::dress(eq, p),
+            Instruments::V2(p) => super::timbre::dress(eq, p),
+            Instruments::None => eq.clone(),
+        }
+    }
+
+    /// The generator version this stream was composed by.
+    pub fn version(&self) -> u32 {
+        self.version
+    }
+
+    /// An equation holding every roster voice (each as stage 1 or its stash has it), in its written instruments.
+    pub fn roster_eq(&self) -> Equation {
         let mut eq = self.stages[0].eq.clone();
         for b in eq.stash.clone() {
             eq.insert_voice(b);
@@ -1969,7 +2038,7 @@ impl Composer {
             }
         }
         eq.stash.clear();
-        eq.song_text("roster")
+        eq
     }
 
     /// The role the next stage takes, and the one after it (a new arc is planned when one ends).
@@ -2131,6 +2200,8 @@ impl Composer {
                     let Some(e) = apply_with(m, &s.eq, &mut r, &ctx) else { continue };
                     let words = if s.words.is_empty() { e.words.clone() } else { format!("{}; {}", s.words, e.words) };
                     let edit = Edit { touched: diff(&base, &e.eq), eq: e.eq, words };
+                    // A due bass is swapped here too: a boosted base would otherwise carry the old bass past its stay.
+                    let edit = if bass_due { refresh_bass(edit, &base, &ctx, &mut r) } else { edit };
                     if let Some(c) = self.judge(&base, edit, &prev_prof) {
                         let loud = c.audibility >= audible::THRESHOLD;
                         cands.push(c);
@@ -2203,7 +2274,7 @@ impl Composer {
         set_clock(&mut eq, k);
         let summary = format!("{}: {summary}", role.word());
         let changed = diff(&prev.eq, &eq);
-        let text = eq.song_text(&self.comment(k, &summary));
+        let text = self.dressed(&eq).song_text(&self.comment(k, &summary));
         self.recent.push(eq.state_hash());
         if self.recent.len() > RECENT {
             self.recent.remove(0);
@@ -2328,9 +2399,19 @@ impl Composer {
             return Closure::default();
         }
         let returns = st.iter().filter(|s| s.role == Role::Return).count();
-        let heard: std::collections::BTreeSet<&str> =
-            st.iter().flat_map(|s| s.eq.book.iter().filter(|(sl, _)| sl != "seam").map(|(_, id)| id.as_str())).collect();
-        let total = book::of(&st[st.len() - 1].eq).modules.iter().filter(|m| m.slot != Slot::Seam).count() as f64;
+        // Novelty counts families, not modules: a slot's generated grooves are takes of one idea (groove::family), so
+        // 24 of them do not make the book 24 ideas bigger (2026-11-04, when the lens drums became generated).
+        let heard: std::collections::BTreeSet<String> = st
+            .iter()
+            .flat_map(|s| s.eq.book.iter().filter(|(sl, _)| sl != "seam").map(|(_, id)| super::groove::family(id)))
+            .collect();
+        let families: std::collections::BTreeSet<String> = book::of(&st[st.len() - 1].eq)
+            .modules
+            .iter()
+            .filter(|m| m.slot != Slot::Seam)
+            .map(|m| super::groove::family(&m.id))
+            .collect();
+        let total = families.len() as f64;
         let mut arcs: Vec<(u64, f64, f64)> = Vec::new();
         for s in st.iter().skip(1) {
             match arcs.last_mut() {
@@ -2541,7 +2622,7 @@ impl Composer {
 
     fn finish_stage(&mut self, k: u64, prev: Stage, mut eq: Equation, summary: String) -> &Stage {
         set_clock(&mut eq, k);
-        let text = eq.song_text(&self.comment(k, &summary));
+        let text = self.dressed(&eq).song_text(&self.comment(k, &summary));
         let song = Song::parse(&text).unwrap_or_else(|e| panic!("the ending does not parse: {e}\n{text}"));
         let prev_song = Song::parse(&prev.text).expect("every stage parses");
         let audibility = audible::change(&audible::profile(&prev_song), &audible::profile(&song)).total();

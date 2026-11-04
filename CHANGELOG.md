@@ -7,6 +7,73 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **Drums sampled from real drummers** (`src/compose/groove.rs`, `src/compose/groove_model.txt`, `docs/groove.md`).
+  The written lens drums were fixed patterns and the keeper heard the hats as "way too basic". The lens book's kick,
+  hat, clap and perc modules are now 24 grooves generated from statistics learned from Magenta's Groove MIDI Dataset
+  (CC BY 4.0). They cover per-step hit odds, loudness, timing, bar-to-bar change and fills, and each bar is kept inside
+  the band of real bars. On held-out data, city pop grooves classify as city pop 62% of the time, against 64% for real
+  drummers; latin fails the same test and is not used. The learner and that test are in `tools/groove/`. Tests:
+  `tests/groove.rs` (7, including every rendered hit checked against its table).
+- **The first reference song** (`docs/references.md`). Seed 885243 at version 2 is a oneline song the keeper heard
+  through to its own ending ("pretty gas", "first fully completed song") and asked to keep in the repo. It is kept as
+  its seed file, as the stretches the app saved, and as the whole song in one file
+  (`examples/reference_s885243_v2_whole_song.txt`), which plays on any build. `tests/versions.rs` holds version 2 to
+  it byte for byte, and holds the live-saved stages 11-14 to be part of it, which proves the reference is what was
+  heard.
+- **Generator versions and seed files** (`docs/versions.md`). A seed plus its generator version now replays the same
+  song forever. `Composer::with_version`, `Stream::start_version`, and `GENERATOR_VERSION` (2) with
+  `GENERATOR_VERSIONS` ([1, 2]); version 1 is the 05:45 instruments, frozen in `src/compose/timbre_v1.rs`. `S` in a
+  stream also writes `stream_s<seed>_v<version>.seed`. The Library lists `*.seed` files, and opening one replays the
+  whole stream at its version. New C ABI: `lm_stream_start_seed_file`, `lm_stream_save_seed`, `lm_stream_version`.
+  Guard: `tests/versions.rs` holds version 1 to the keeper's saved seed 152637 byte for byte, and was shown to fail
+  when one frozen number changed. Added `examples/stream_s152637_v1.seed`.
+- **Drawn drum kits** (`timbre.rs`, version 2). The keeper: "the same tweeting hi hats are getting so stale"; every
+  groove used one hat, a dash falling 7600 to 5400 Hz in 5 ms. Each song now draws a kick, a clap or snare, a hat and
+  an open hat, each matched to the written sound's one-hit energy. No drawn hat sweeps more than 5% (checked over
+  200 palettes). The engine's noise `hat` and `snare` take `decay` and `length`, built-in values when absent. Also
+  drawn per instrument: the rolloff (660 a third of the time, else 1500-6000 Hz), held-lead filters, more detune and
+  drive. The registered brightness span (1.0 harmonic) **failed at 0.70** and is kept as an ignored test.
+- **Instruments drawn per song** (`src/compose/timbre.rs`, `docs/timbre.md`). Every module carried one fixed sound,
+  so every song wore the same lead, bass and pads; the keeper noticed. A book song now draws one instrument per tonal
+  role from its seed and keeps it for the song. Each role draws from its own ranges: bass low and tight, pads slow and
+  detuned, the arp a pluck, the lead a pluck, a held lead or a bell. Each instrument's gain is rescaled to the written
+  one's loudness (harmonics, rolloff, filter and sustain). A gliding line holds its notes whatever its tone. A set
+  whose full band scores more than 0.1 below the written instruments against the two reference recordings is drawn
+  again. Registered run: 20 of 20 songs within the margin (18 required), 20 different leads, all three kinds. Explore
+  tunings keep their written sound. Only the played text is dressed; how the stream composes is unchanged
+  (`Composer::dressed`, `roster_eq`). Tests: `tests/timbre.rs` (6).
+- **`world/launch.ps1`**: starts the world, rebuilding first when any engine or world source is newer than the built
+  app. It refuses to start the old binary when the build fails, and refuses to rebuild while the app is running. It
+  sets `CARGO_TARGET_DIR` to this repo's `target`, which `build.bat` assumes, because a machine-wide one otherwise
+  breaks the link. It runs the build with `[Process]::Start` and `WaitForExit`, after two traps were hit or measured:
+  `Start-Process -Wait` never returns (MSVC's PDB server outlives the build), and `Start-Process -PassThru` gives a
+  null exit code. `world/launch.vbs` runs it with no console window, and the desktop shortcut points there.
+  Verified: a touched source rebuilt and started the app in 14 s. Not yet exercised: the failed-build dialog.
+
+### Changed
+
+- **A song's novelty counts families, not modules** (`Composer::closure_parts`). A slot's generated grooves are one
+  family (`groove::family`), so 24 takes of one groove do not make the book 24 ideas bigger. Without this, songs
+  ended by the clock (3 of 10 by closure, where 5 is required); with it, 7 of 10. Written modules are unaffected.
+  **Roll back:** restore the module count in `closure_parts` and set `book::GROOVES` low (about 3), or remove the
+  `replace_drums` call in `book::all`.
+
+### Fixed
+
+- **A saved stream stretch keeps the instruments that were heard** (`stream::save_text`). It merged each stage's
+  undressed equation, so the drawn instruments were lost. The keeper saved seed 152637 after five minutes of listening,
+  and the file carried the written lead (odd harmonics, a pluck) instead of the held lead he heard. It now merges each
+  stage's played text. Test: `a_saved_stretch_keeps_the_instruments_that_were_heard` fails without the fix.
+  **Recovered:** `examples/stream_s152637_1-2_heard.txt` and `_12-15_heard.txt` were saved from the 05:45 instrument
+  code, rebuilt by reversing the later edit. That rebuild matched the 05:45 engine kept from `world/bin` byte for byte
+  on stages 1 and 2, including the drawn lead. Saved without instruments, it reproduces the app's own two files byte
+  for byte. The original files are kept beside them.
+- **A due bass is swapped on the boost path too** (`Composer`, the "too quiet a change" boost). A bass that had played
+  `BASS_STAYS` stages was swapped in every normal candidate but not in boosted ones, and boosting the unchanged base
+  could carry the old bass past its stay. The gap was always there. The new drums changed the stream's random path,
+  and seed 2 then held one bass for 7 stages (`the_bass_changes_as_a_song_goes_on` allows 6). With the fix, its
+  longest run is 3.
+
 - **Written harmony: the progression layer** (`src/compose/harmony.txt`, `src/compose/harmony.rs`; a loops
   stream whose chord root cycled by `mod(c + m, 5)` every 11 beats, out of step with the bar, was judged to sound bad
   because of its progression). Harmony is written, never

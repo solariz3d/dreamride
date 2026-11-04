@@ -2219,6 +2219,19 @@ static void StartLoad(const std::string& path, const std::string& title, int ind
       ok = st && LoadStreamWindowInto(*s, st, 0, 0, th, err);
       if (!ok && st) lm_stream_free(st);
       g_loader.stream = ok ? st : nullptr;
+    } else if (ui::IsSeedPath(path)) {  // a seed file: the stream it names, at its generator version, from stage 1
+      char e[1024] = {};
+      LmStream* st = lm_stream_start_seed_file(path.c_str(), 1, 0, e, sizeof(e));
+      if (!st) err = e;
+      if (st) {
+        LmStreamInfo i{}; lm_stream_info(st, &i);
+        StreamConfig used; used.seed = i.seed; used.flags = LM_STREAM_GRAMMAR; used.fresh = false;
+        g_loader.streamUsed = used;
+        printf("stream: seed file %s: seed %llu at generator version %u\n", path.c_str(), (unsigned long long)i.seed, lm_stream_version(st));
+      }
+      ok = st && LoadStreamWindowInto(*s, st, 0, 0, th, err);
+      if (!ok && st) lm_stream_free(st);
+      g_loader.stream = ok ? st : nullptr;
     } else {
       ok = LoadSongInto(*s, path.c_str(), th, err);
     }
@@ -2797,7 +2810,9 @@ static void SwapInStream(LmStream* st, std::unique_ptr<Song> s, int index, const
   g_stream.windowStage = startStage;
   g_streaming = true;
   g_lib.current = index >= 0 ? index : (startStage ? -1 : 0);
-  bool known = g_lib.current >= 0 && g_lib.current < (int)g_lib.songs.size() && ui::IsStream(g_lib.songs[g_lib.current]);
+  // a Stream entry, or a seed file (its title and description are the entry's own)
+  bool known = g_lib.current >= 0 && g_lib.current < (int)g_lib.songs.size() &&
+               (ui::IsStream(g_lib.songs[g_lib.current]) || ui::IsSeedPath(g_lib.songs[g_lib.current].path));
   g_stream.fromG = known ? g_lib.songs[g_lib.current].path == ui::kStreamGPath : (!(cfg.flags & LM_STREAM_GRAMMAR) && cfg.seedText.empty());
   g_lib.currentTitle = !title.empty() ? title : known ? g_lib.songs[g_lib.current].title : std::string("Stream");
   g_lib.currentDescription = known ? g_lib.songs[g_lib.current].description : std::string();
@@ -3045,8 +3060,16 @@ static void SaveStreamStretch(double now) {
   std::string path = (dir / fs::u8path(name)).u8string();
   char err[1024] = {};
   if (lm_stream_save(g_stream.s, cur, count, path.c_str(), err, sizeof(err))) {
+    // The whole seed too: one small file that replays the stream from its start at its generator version (a stream
+    // from a song has none; that is not an error, the stretch is saved).
+    char seedName[96];
+    snprintf(seedName, sizeof(seedName), "stream_s%llu_v%u.seed", (unsigned long long)g_stream.info.seed, lm_stream_version(g_stream.s));
+    char serr[512] = {};
+    const bool seedSaved = lm_stream_save_seed(g_stream.s, (dir / fs::u8path(seedName)).u8string().c_str(), serr, sizeof(serr)) != 0;
+    if (!seedSaved) printf("stream: no seed file: %s\n", serr);
     char msg[256];
-    snprintf(msg, sizeof(msg), u8"Saved stages %llu–%llu as %s", (unsigned long long)first + 1, (unsigned long long)cur + 1, name.c_str());
+    snprintf(msg, sizeof(msg), u8"Saved stages %llu–%llu as %s%s%s", (unsigned long long)first + 1, (unsigned long long)cur + 1, name.c_str(),
+             seedSaved ? ", and the whole seed as " : "", seedSaved ? seedName : "");
     printf("stream: %s\n", msg);
     ToastStream(msg, false, now);
   } else {

@@ -1,0 +1,108 @@
+# Saved from a Dreamride stream (from the oneline species, seed 885243, seed 885243): stages 1 to 3, 24 bars.
+#
+# Stage 1: the seed opens with the lead and hat.
+# Stage 2: build: the counter comes in.
+# Stage 3: build: the kick comes in, playing oneline/kick.four; the counter takes oneline/counter.bassline.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 153
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 96
+
+Q = floor(t / 32)
+K = 2
+c = 6
+h(d) = K + floor((12d + c) / 7)
+ru(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr(i) = K + mod((hd(Hb, i) + Ho) Hm, 12)
+Hv(m, i) = K + 6m - 16 + hd(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+Hc(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv(0, i) - 1 - mod(Hv(0, i) - 1 - Hr(i), 12), Hv(mod(m, 4) - 1, i))
+Hm = 7
+Ho = 0
+Hb = 22002200222211
+Hx = 3311331133111113
+Hy = 2244224422443333
+Hz = 6633663366334446
+Zv(k) = if(mod(k, 6) == 5, Hc(5 - ru(floor(k / 6)), floor(k / 12)) + 12, Hc(mod(k, 6), floor(k / 12)) - 12)
+T_0 = t - 0
+Zl_0 = Zv(floor(6T_0))
+Zh_0 = 0.5 - frac(2T_0)
+T_1 = t - 32
+Zl_1 = Zv(floor(6T_1))
+Ze_1(k) = if(mod(k, 4) == 0, Hr(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc(7 - ru(floor(k / 4)), floor(k / 16)) + 12, Hv(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_1 = Ze_1(max(floor(8T_1) - 3, 0))
+Zh_1 = 0.5 - frac(2T_1)
+T_2 = t - 64
+Zl_2 = Zv(floor(6T_2))
+Zc_2 = Hr(floor(T_2 / 2)) - 24 + 12 mod(floor(2T_2), 2) - 5 (ru(floor(2T_2)) >= 3)
+Zz_2 = 0.5 - frac(T_2)
+Zh_2 = 0.5 - frac(2T_2)
+
+voice counter {
+  pitch = if(Q == 0, 0, if(Q == 1, Zc_1, Zc_2))
+  gate = if(Q == 0, 0, if(Q == 1, frac(T_1 / 16) < 0.985, 0.7 - frac(2T_2)))
+  gain = 0.0875
+  pan = -0.1
+  wave = additive
+  partials = 0.2, -8.7, -10.6, -18.3, -20.8, -26.6, -27.1, -31.5, -31, -34.9, -34, -37.5
+  attack = 4.58
+  decay = 126.46
+  sustain = 0.4
+  release = 94.41
+  cutoff = if(Q == 0, 0, if(Q == 1, 2107.8, 2107.8))
+  filter_env = 3.08
+  filter_decay = 176.03
+  detune = 13.67
+  rolloff = 660
+}
+
+voice lead {
+  pitch = if(Q == 0, Zl_0, if(Q == 1, Zl_1, Zl_2))
+  gate = if(Q == 0, frac(T_0 / 16) < 0.985, if(Q == 1, frac(T_1 / 16) < 0.985, frac(T_2 / 16) < 0.985))
+  gain = 0.1442
+  pan = 0
+  reverb = 0.3
+  delay = 0.2
+  wave = additive
+  partials = 0.7, -10.4, -2.2, -18.5, -10.8, -24.4, -14.7
+  attack = 5.76
+  decay = 292.79
+  sustain = 0.35
+  release = 89.12
+  cutoff = if(Q == 0, 2052.91, if(Q == 1, 2052.91, 2052.91))
+  filter_env = 2.28
+  filter_decay = 192.68
+  detune = 7.78
+  drive = 1.26
+  rolloff = 3268.23
+}
+
+drum kick {
+  trigger = if(Q == 0, 0, if(Q == 1, 0, Zz_2))
+  gain = 0.5966
+  kind = dash
+  from = 593.9
+  to = 42.65
+  dash = 19.24
+  hold = 30.58
+  decay = 97.93
+  length = 419.17
+  partials = 0, -18.5, -10.5, -17.7
+  rolloff = 660
+}
+
+drum hat {
+  trigger = if(Q == 0, Zh_0, if(Q == 1, Zh_1, Zh_2))
+  amp = if(Q == 0, 0.4 + 0.15 ru(floor(2T_0)), if(Q == 1, 0.4 + 0.15 ru(floor(2T_1)), 0.4 + 0.15 ru(floor(2T_2))))
+  gain = 2.8
+  pan = 0.25
+  kind = hat
+  decay = 44.66
+  length = 97.36
+}

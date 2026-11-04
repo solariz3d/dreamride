@@ -82,6 +82,23 @@ TEST(scan_lists_txt_songs_sorted_with_titles_and_descriptions) {
     CHECK(fs::exists(fs::u8path(s[1].path)));
   }
 }
+TEST(scan_lists_seed_files_beside_songs) {
+  TempDir d("seeds");
+  d.Write("song.txt", "# a song\n");
+  d.Write("stream_s152637_v1.seed", "# Dreamride seed: the automaton species, seed 152637\nseed 152637\nkind species\nversion 1\n");
+  d.Write("LOUD.SEED", "seed 1\nkind book\nversion 2\n");
+  d.Write("stream.seeds", "not a seed file\n");
+  auto s = ScanSongs({ d.p.u8string() });
+  CHECK_EQ(s.size(), (size_t)3);
+  int seeds = 0;
+  for (const auto& e : s) if (IsSeedPath(e.path)) ++seeds;
+  CHECK_EQ(seeds, 2);
+  for (const auto& e : s)
+    if (e.title == "stream_s152637_v1") CHECK_EQ(e.description, std::string("Dreamride seed: the automaton species, seed 152637"));
+  CHECK(!IsSeedPath("song.txt"));
+  CHECK(!IsSeedPath("a.seed.txt"));
+  CHECK(IsSeedPath("C:\\songs\\x.Seed"));
+}
 TEST(scan_keeps_folder_order_and_lists_a_folder_given_twice_once) {
   TempDir a("scanA"), b("scanB");
   a.Write("zz.txt", "# from a\n");

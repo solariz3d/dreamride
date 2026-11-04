@@ -1,0 +1,449 @@
+# Saved from a Dreamride stream (from the oneline species, seed 885243, seed 885243): stages 1 to 16, 128 bars.
+#
+# Stage 1: the seed opens with the lead and hat.
+# Stage 2: build: the counter comes in.
+# Stage 3: build: the kick comes in, playing oneline/kick.four; the counter takes oneline/counter.bassline.
+# Stage 4: build: the clap comes in; a new progression, oneline/prog.axis.
+# Stage 5: peak: the perc comes in; the melody moves up an octave; into the seam, oneline/seam.roll.
+# Stage 6: breakdown: only the counter and lead.
+# Stage 7: turn: the counter takes oneline/counter.echo; a new melody, oneline/lead.revealed; into the seam, oneline/seam.sweep.
+# Stage 8: return: the drop: the kick, hat, clap and perc return; a new progression, oneline/prog.borrowed_four; into the seam, oneline/seam.sweep.
+# Stage 9: intro: it thins to the counter, lead and clap; modulates up a fourth (K = 7); a new progression, oneline/prog.royal_road.
+# Stage 10: build: the kick comes in, playing oneline/kick.chip; into the seam, oneline/seam.sweep.
+# Stage 11: peak: the perc comes in; the melody moves down an octave; into the seam, oneline/seam.roll.
+# Stage 12: breakdown: only the counter and lead.
+# Stage 13: turn: a new melody, oneline/lead.three; into the seam, oneline/seam.sweep.
+# Stage 14: return: the drop: the kick, hat, clap and perc return; a new melody, oneline/lead.four; into the seam, oneline/seam.sweep.
+# Stage 15: coda: home to oneline/prog.lydian_float, the first melody, oneline/lead.rolled, again; its opening again, then IV V7 I under a final ritard, a last kick, and it rings out.
+# Stage 16: coda: it rings out.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 153
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 512
+
+Q = floor(t / 32)
+Hm = 7
+T_0 = t - 0
+K_0 = 2
+c_0 = 6
+h_0(d) = K_0 + floor((12d + c_0) / 7)
+ru_0(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_0(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_0(i) = K_0 + mod((hd_0(Hb_0, i) + Ho_0) Hm, 12)
+Hv_0(m, i) = K_0 + 6m - 16 + hd_0(if(m == 0, Hx_0, if(m == 1, Hy_0, Hz_0)), i)
+Hc_0(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_0(0, i) - 1 - mod(Hv_0(0, i) - 1 - Hr_0(i), 12), Hv_0(mod(m, 4) - 1, i))
+Ho_0 = 0
+Hb_0 = 22002200222211
+Hx_0 = 3311331133111113
+Hy_0 = 2244224422443333
+Hz_0 = 6633663366334446
+Zv_0(k) = if(mod(k, 6) == 5, Hc_0(5 - ru_0(floor(k / 6)), floor(k / 12)) + 12, Hc_0(mod(k, 6), floor(k / 12)) - 12)
+Zl_0 = Zv_0(floor(6T_0))
+Zh_0 = 0.5 - frac(2T_0)
+T_1 = t - 32
+K_1 = 2
+c_1 = 6
+h_1(d) = K_1 + floor((12d + c_1) / 7)
+ru_1(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_1(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_1(i) = K_1 + mod((hd_1(Hb_1, i) + Ho_1) Hm, 12)
+Hv_1(m, i) = K_1 + 6m - 16 + hd_1(if(m == 0, Hx_1, if(m == 1, Hy_1, Hz_1)), i)
+Hc_1(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_1(0, i) - 1 - mod(Hv_1(0, i) - 1 - Hr_1(i), 12), Hv_1(mod(m, 4) - 1, i))
+Ho_1 = 0
+Hb_1 = 22002200222211
+Hx_1 = 3311331133111113
+Hy_1 = 2244224422443333
+Hz_1 = 6633663366334446
+Zv_1(k) = if(mod(k, 6) == 5, Hc_1(5 - ru_1(floor(k / 6)), floor(k / 12)) + 12, Hc_1(mod(k, 6), floor(k / 12)) - 12)
+Zl_1 = Zv_1(floor(6T_1))
+Ze_1(k) = if(mod(k, 4) == 0, Hr_1(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_1(7 - ru_1(floor(k / 4)), floor(k / 16)) + 12, Hv_1(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_1 = Ze_1(max(floor(8T_1) - 3, 0))
+Zh_1 = 0.5 - frac(2T_1)
+T_2 = t - 64
+K_2 = 2
+c_2 = 6
+h_2(d) = K_2 + floor((12d + c_2) / 7)
+ru_2(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_2(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_2(i) = K_2 + mod((hd_2(Hb_2, i) + Ho_2) Hm, 12)
+Hv_2(m, i) = K_2 + 6m - 16 + hd_2(if(m == 0, Hx_2, if(m == 1, Hy_2, Hz_2)), i)
+Hc_2(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_2(0, i) - 1 - mod(Hv_2(0, i) - 1 - Hr_2(i), 12), Hv_2(mod(m, 4) - 1, i))
+Ho_2 = 0
+Hb_2 = 22002200222211
+Hx_2 = 3311331133111113
+Hy_2 = 2244224422443333
+Hz_2 = 6633663366334446
+Zv_2(k) = if(mod(k, 6) == 5, Hc_2(5 - ru_2(floor(k / 6)), floor(k / 12)) + 12, Hc_2(mod(k, 6), floor(k / 12)) - 12)
+Zl_2 = Zv_2(floor(6T_2))
+Zc_2 = Hr_2(floor(T_2 / 2)) - 24 + 12 mod(floor(2T_2), 2) - 5 (ru_2(floor(2T_2)) >= 3)
+Zz_2 = 0.5 - frac(T_2)
+Zh_2 = 0.5 - frac(2T_2)
+T_3 = t - 96
+K_3 = 2
+c_3 = 5
+h_3(d) = K_3 + floor((12d + c_3) / 7)
+ru_3(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_3(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_3(i) = K_3 + mod((hd_3(Hb_3, i) + Ho_3) Hm, 12)
+Hv_3(m, i) = K_3 + 6m - 16 + hd_3(if(m == 0, Hx_3, if(m == 1, Hy_3, Hz_3)), i)
+Hc_3(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_3(0, i) - 1 - mod(Hv_3(0, i) - 1 - Hr_3(i), 12), Hv_3(mod(m, 4) - 1, i))
+Ho_3 = -1
+Hb_3 = 1166440011664402
+Hx_3 = 6633444466334444
+Hy_3 = 5555557755555573
+Hz_3 = 8866888888668886
+Zv_3(k) = if(mod(k, 6) == 5, Hc_3(5 - ru_3(floor(k / 6)), floor(k / 12)) + 12, Hc_3(mod(k, 6), floor(k / 12)) - 12)
+Zl_3 = Zv_3(floor(6T_3))
+Zc_3 = Hr_3(floor(T_3 / 2)) - 24 + 12 mod(floor(2T_3), 2) - 5 (ru_3(floor(2T_3)) >= 3)
+Zz_3 = 0.5 - frac(T_3)
+Zh_3 = 0.5 - frac(2T_3)
+Zx_3 = (mod(floor(T_3), 2) == 1)(0.5 - frac(T_3))
+T_4 = t - 128
+K_4 = 2
+c_4 = 5
+h_4(d) = K_4 + floor((12d + c_4) / 7)
+ru_4(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_4(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_4(i) = K_4 + mod((hd_4(Hb_4, i) + Ho_4) Hm, 12)
+Hv_4(m, i) = K_4 + 6m - 16 + hd_4(if(m == 0, Hx_4, if(m == 1, Hy_4, Hz_4)), i)
+Hc_4(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_4(0, i) - 1 - mod(Hv_4(0, i) - 1 - Hr_4(i), 12), Hv_4(mod(m, 4) - 1, i))
+Ho_4 = -1
+Hb_4 = 1166440011664402
+Hx_4 = 6633444466334444
+Hy_4 = 5555557755555573
+Hz_4 = 8866888888668886
+Zv_4(k) = if(mod(k, 6) == 5, Hc_4(5 - ru_4(floor(k / 6)), floor(k / 12)) + 12, Hc_4(mod(k, 6), floor(k / 12)) - 12)
+Zl_4 = Zv_4(floor(6T_4)) + 12
+Zc_4 = Hr_4(floor(T_4 / 2)) - 24 + 12 mod(floor(2T_4), 2) - 5 (ru_4(floor(2T_4)) >= 3)
+Zz_4 = 0.5 - frac(T_4)
+Zh_4 = 0.5 - frac(2T_4)
+Zx_4 = (mod(floor(T_4), 2) == 1)(0.5 - frac(T_4))
+Zy_4 = (ru_4(floor(4T_4)) >= 3)(0.5 - frac(4T_4))
+roll_4 = (T_4 >= 28)(0.5 - frac(4T_4))
+T_5 = t - 160
+K_5 = 2
+c_5 = 5
+h_5(d) = K_5 + floor((12d + c_5) / 7)
+ru_5(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_5(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_5(i) = K_5 + mod((hd_5(Hb_5, i) + Ho_5) Hm, 12)
+Hv_5(m, i) = K_5 + 6m - 16 + hd_5(if(m == 0, Hx_5, if(m == 1, Hy_5, Hz_5)), i)
+Hc_5(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_5(0, i) - 1 - mod(Hv_5(0, i) - 1 - Hr_5(i), 12), Hv_5(mod(m, 4) - 1, i))
+Ho_5 = -1
+Hb_5 = 1166440011664402
+Hx_5 = 6633444466334444
+Hy_5 = 5555557755555573
+Hz_5 = 8866888888668886
+Zv_5(k) = if(mod(k, 6) == 5, Hc_5(5 - ru_5(floor(k / 6)), floor(k / 12)) + 12, Hc_5(mod(k, 6), floor(k / 12)) - 12)
+Zl_5 = Zv_5(floor(6T_5)) + 12
+Zc_5 = Hr_5(floor(T_5 / 2)) - 24 + 12 mod(floor(2T_5), 2) - 5 (ru_5(floor(2T_5)) >= 3)
+T_6 = t - 192
+K_6 = 2
+c_6 = 5
+h_6(d) = K_6 + floor((12d + c_6) / 7)
+ru_6(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_6(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_6(i) = K_6 + mod((hd_6(Hb_6, i) + Ho_6) Hm, 12)
+Hv_6(m, i) = K_6 + 6m - 16 + hd_6(if(m == 0, Hx_6, if(m == 1, Hy_6, Hz_6)), i)
+Hc_6(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_6(0, i) - 1 - mod(Hv_6(0, i) - 1 - Hr_6(i), 12), Hv_6(mod(m, 4) - 1, i))
+Ho_6 = -1
+Hb_6 = 1166440011664402
+Hx_6 = 6633444466334444
+Hy_6 = 5555557755555573
+Hz_6 = 8866888888668886
+Zm_6(m) = Hc_6(7 - ru_6(m), floor(m / 4))
+Zl_6 = Zm_6(floor(2T_6)) + (Zm_6(floor(2T_6) + 1) - Zm_6(floor(2T_6))) smooth((frac(2T_6) - 0.6) / 0.4)
+Ze_6(k) = if(mod(k, 4) == 0, Hr_6(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_6(7 - ru_6(floor(k / 4)), floor(k / 16)) + 12, Hv_6(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_6 = Ze_6(max(floor(8T_6) - 3, 0))
+sweep_6 = Hc_6(floor(16 (clamp(T_6, 30, 31.99) - 30) / 3.2), 15)
+T_7 = t - 224
+K_7 = 2
+c_7 = 5
+h_7(d) = K_7 + floor((12d + c_7) / 7)
+ru_7(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_7(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_7(i) = K_7 + mod((hd_7(Hb_7, i) + Ho_7) Hm, 12)
+Hv_7(m, i) = K_7 + 6m - 16 + hd_7(if(m == 0, Hx_7, if(m == 1, Hy_7, Hz_7)), i)
+Hc_7(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_7(0, i) - 1 - mod(Hv_7(0, i) - 1 - Hr_7(i), 12), Hv_7(mod(m, 4) - 1, i))
+Ho_7 = -1
+Hb_7 = 1100554400005432
+Hx_7 = 3311333311003444
+Hy_7 = 2222555522005533
+Hz_7 = 6644664444446886
+Zm_7(m) = Hc_7(7 - ru_7(m), floor(m / 4))
+Zl_7 = Zm_7(floor(2T_7)) + (Zm_7(floor(2T_7) + 1) - Zm_7(floor(2T_7))) smooth((frac(2T_7) - 0.6) / 0.4)
+Ze_7(k) = if(mod(k, 4) == 0, Hr_7(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_7(7 - ru_7(floor(k / 4)), floor(k / 16)) + 12, Hv_7(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_7 = Ze_7(max(floor(8T_7) - 3, 0))
+Zz_7 = 0.5 - frac(T_7)
+Zh_7 = 0.5 - frac(2T_7)
+Zx_7 = (mod(floor(T_7), 2) == 1)(0.5 - frac(T_7))
+Zy_7 = (ru_7(floor(4T_7)) >= 3)(0.5 - frac(4T_7))
+sweep_7 = Hc_7(floor(16 (clamp(T_7, 30, 31.99) - 30) / 3.2), 15)
+T_8 = t - 256
+K_8 = 7
+c_8 = 5
+h_8(d) = K_8 + floor((12d + c_8) / 7)
+ru_8(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_8(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_8(i) = K_8 + mod((hd_8(Hb_8, i) + Ho_8) Hm, 12)
+Hv_8(m, i) = K_8 + 6m - 16 + hd_8(if(m == 0, Hx_8, if(m == 1, Hy_8, Hz_8)), i)
+Hc_8(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_8(0, i) - 1 - mod(Hv_8(0, i) - 1 - Hr_8(i), 12), Hv_8(mod(m, 4) - 1, i))
+Ho_8 = -1
+Hb_8 = 1100225400225432
+Hx_8 = 3311333444333443
+Hy_8 = 2222335577336533
+Hz_8 = 6644666888666886
+Zm_8(m) = Hc_8(7 - ru_8(m), floor(m / 4))
+Zl_8 = Zm_8(floor(2T_8)) + (Zm_8(floor(2T_8) + 1) - Zm_8(floor(2T_8))) smooth((frac(2T_8) - 0.6) / 0.4)
+Ze_8(k) = if(mod(k, 4) == 0, Hr_8(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_8(7 - ru_8(floor(k / 4)), floor(k / 16)) + 12, Hv_8(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_8 = Ze_8(max(floor(8T_8) - 3, 0))
+Zx_8 = (mod(floor(T_8), 2) == 1)(0.5 - frac(T_8))
+T_9 = t - 288
+K_9 = 7
+c_9 = 5
+h_9(d) = K_9 + floor((12d + c_9) / 7)
+ru_9(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_9(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_9(i) = K_9 + mod((hd_9(Hb_9, i) + Ho_9) Hm, 12)
+Hv_9(m, i) = K_9 + 6m - 16 + hd_9(if(m == 0, Hx_9, if(m == 1, Hy_9, Hz_9)), i)
+Hc_9(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_9(0, i) - 1 - mod(Hv_9(0, i) - 1 - Hr_9(i), 12), Hv_9(mod(m, 4) - 1, i))
+Ho_9 = -1
+Hb_9 = 1100225400225432
+Hx_9 = 3311333444333443
+Hy_9 = 2222335577336533
+Hz_9 = 6644666888666886
+Zm_9(m) = Hc_9(7 - ru_9(m), floor(m / 4))
+Zl_9 = Zm_9(floor(2T_9)) + (Zm_9(floor(2T_9) + 1) - Zm_9(floor(2T_9))) smooth((frac(2T_9) - 0.6) / 0.4)
+Ze_9(k) = if(mod(k, 4) == 0, Hr_9(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_9(7 - ru_9(floor(k / 4)), floor(k / 16)) + 12, Hv_9(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_9 = Ze_9(max(floor(8T_9) - 3, 0))
+Zz_9 = ((mod(floor(2T_9), 8) == 0) + (mod(floor(2T_9), 8) == 3) + (mod(floor(2T_9), 8) == 4))(0.5 - frac(2T_9))
+Zx_9 = (mod(floor(T_9), 2) == 1)(0.5 - frac(T_9))
+sweep_9 = Hc_9(floor(16 (clamp(T_9, 30, 31.99) - 30) / 3.2), 15)
+T_10 = t - 320
+K_10 = 7
+c_10 = 5
+h_10(d) = K_10 + floor((12d + c_10) / 7)
+ru_10(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_10(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_10(i) = K_10 + mod((hd_10(Hb_10, i) + Ho_10) Hm, 12)
+Hv_10(m, i) = K_10 + 6m - 16 + hd_10(if(m == 0, Hx_10, if(m == 1, Hy_10, Hz_10)), i)
+Hc_10(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_10(0, i) - 1 - mod(Hv_10(0, i) - 1 - Hr_10(i), 12), Hv_10(mod(m, 4) - 1, i))
+Ho_10 = -1
+Hb_10 = 1100225400225432
+Hx_10 = 3311333444333443
+Hy_10 = 2222335577336533
+Hz_10 = 6644666888666886
+Zm_10(m) = Hc_10(7 - ru_10(m), floor(m / 4))
+Zl_10 = Zm_10(floor(2T_10)) + (Zm_10(floor(2T_10) + 1) - Zm_10(floor(2T_10))) smooth((frac(2T_10) - 0.6) / 0.4) - 12
+Ze_10(k) = if(mod(k, 4) == 0, Hr_10(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_10(7 - ru_10(floor(k / 4)), floor(k / 16)) + 12, Hv_10(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_10 = Ze_10(max(floor(8T_10) - 3, 0))
+Zz_10 = ((mod(floor(2T_10), 8) == 0) + (mod(floor(2T_10), 8) == 3) + (mod(floor(2T_10), 8) == 4))(0.5 - frac(2T_10))
+Zx_10 = (mod(floor(T_10), 2) == 1)(0.5 - frac(T_10))
+Zy_10 = (ru_10(floor(4T_10)) >= 3)(0.5 - frac(4T_10))
+roll_10 = (T_10 >= 28)(0.5 - frac(4T_10))
+T_11 = t - 352
+K_11 = 7
+c_11 = 5
+h_11(d) = K_11 + floor((12d + c_11) / 7)
+ru_11(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_11(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_11(i) = K_11 + mod((hd_11(Hb_11, i) + Ho_11) Hm, 12)
+Hv_11(m, i) = K_11 + 6m - 16 + hd_11(if(m == 0, Hx_11, if(m == 1, Hy_11, Hz_11)), i)
+Hc_11(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_11(0, i) - 1 - mod(Hv_11(0, i) - 1 - Hr_11(i), 12), Hv_11(mod(m, 4) - 1, i))
+Ho_11 = -1
+Hb_11 = 1100225400225432
+Hx_11 = 3311333444333443
+Hy_11 = 2222335577336533
+Hz_11 = 6644666888666886
+Zm_11(m) = Hc_11(7 - ru_11(m), floor(m / 4))
+Zl_11 = Zm_11(floor(2T_11)) + (Zm_11(floor(2T_11) + 1) - Zm_11(floor(2T_11))) smooth((frac(2T_11) - 0.6) / 0.4) - 12
+Ze_11(k) = if(mod(k, 4) == 0, Hr_11(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_11(7 - ru_11(floor(k / 4)), floor(k / 16)) + 12, Hv_11(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_11 = Ze_11(max(floor(8T_11) - 3, 0))
+T_12 = t - 384
+K_12 = 7
+c_12 = 5
+h_12(d) = K_12 + floor((12d + c_12) / 7)
+ru_12(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_12(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_12(i) = K_12 + mod((hd_12(Hb_12, i) + Ho_12) Hm, 12)
+Hv_12(m, i) = K_12 + 6m - 16 + hd_12(if(m == 0, Hx_12, if(m == 1, Hy_12, Hz_12)), i)
+Hc_12(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_12(0, i) - 1 - mod(Hv_12(0, i) - 1 - Hr_12(i), 12), Hv_12(mod(m, 4) - 1, i))
+Ho_12 = -1
+Hb_12 = 1100225400225432
+Hx_12 = 3311333444333443
+Hy_12 = 2222335577336533
+Hz_12 = 6644666888666886
+Zv_12(k) = if(mod(k, 3) == 0, Hr_12(floor(k / 12)) - 24, if(mod(k, 3) == 1, Hc_12(7 - ru_12(floor(k / 3)), floor(k / 12)) + 12, Hv_12(1 + mod(floor(k / 3), 2), floor(k / 12))))
+Zl_12 = Zv_12(floor(6T_12))
+Ze_12(k) = if(mod(k, 4) == 0, Hr_12(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_12(7 - ru_12(floor(k / 4)), floor(k / 16)) + 12, Hv_12(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_12 = Ze_12(max(floor(8T_12) - 3, 0))
+sweep_12 = Hc_12(floor(16 (clamp(T_12, 30, 31.99) - 30) / 3.2), 15)
+T_13 = t - 416
+K_13 = 7
+c_13 = 5
+h_13(d) = K_13 + floor((12d + c_13) / 7)
+ru_13(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_13(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_13(i) = K_13 + mod((hd_13(Hb_13, i) + Ho_13) Hm, 12)
+Hv_13(m, i) = K_13 + 6m - 16 + hd_13(if(m == 0, Hx_13, if(m == 1, Hy_13, Hz_13)), i)
+Hc_13(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_13(0, i) - 1 - mod(Hv_13(0, i) - 1 - Hr_13(i), 12), Hv_13(mod(m, 4) - 1, i))
+Ho_13 = -1
+Hb_13 = 1100225400225432
+Hx_13 = 3311333444333443
+Hy_13 = 2222335577336533
+Hz_13 = 6644666888666886
+Zv_13(k) = if(mod(k, 4) == 0, Hr_13(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_13(7 - ru_13(floor(k / 4)), floor(k / 16)) + 12, Hv_13(1 + (mod(k, 4) == 3), floor(k / 16))))
+Zl_13 = Zv_13(floor(8T_13))
+Ze_13(k) = if(mod(k, 4) == 0, Hr_13(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc_13(7 - ru_13(floor(k / 4)), floor(k / 16)) + 12, Hv_13(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc_13 = Ze_13(max(floor(8T_13) - 3, 0))
+Zz_13 = ((mod(floor(2T_13), 8) == 0) + (mod(floor(2T_13), 8) == 3) + (mod(floor(2T_13), 8) == 4))(0.5 - frac(2T_13))
+Zh_13 = 0.5 - frac(2T_13)
+Zx_13 = (mod(floor(T_13), 2) == 1)(0.5 - frac(T_13))
+Zy_13 = (ru_13(floor(4T_13)) >= 3)(0.5 - frac(4T_13))
+sweep_13 = Hc_13(floor(16 (clamp(T_13, 30, 31.99) - 30) / 3.2), 15)
+T_14 = t - 448
+K_14 = 2
+c_14 = 6
+h_14(d) = K_14 + floor((12d + c_14) / 7)
+ru_14(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd_14(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr_14(i) = K_14 + mod((hd_14(Hb_14, i) + Ho_14) Hm, 12)
+Hv_14(m, i) = K_14 + 6m - 16 + hd_14(if(m == 0, Hx_14, if(m == 1, Hy_14, Hz_14)), i)
+Hc_14(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv_14(0, i) - 1 - mod(Hv_14(0, i) - 1 - Hr_14(i), 12), Hv_14(mod(m, 4) - 1, i))
+Ho_14 = -1
+Hb_14 = 1133113300221111
+Hx_14 = 3311331111433333
+Hy_14 = 2244224422332222
+Hz_14 = 6633663344666666
+Zv_14(k) = if(mod(k, 6) == 5, Hc_14(5 - ru_14(floor(k / 6)), floor(k / 12)) + 12, Hc_14(mod(k, 6), floor(k / 12)) - 12)
+Zl_14 = Zv_14(floor(6tr_14))
+Zz_14 = ((mod(floor(2tr_14), 8) == 0) + (mod(floor(2tr_14), 8) == 3) + (mod(floor(2tr_14), 8) == 4))(0.5 - frac(2tr_14))
+tr_14 = if(T_14 < 16, T_14, if(T_14 < 26.2857, 16 + 9.142857 (1 - (1 - 0.0729167 (min(T_14, 26.2857) - 16))^1.5), 24 + 0.5 (T_14 - 26.2857)))
+T_15 = t - 480
+K_15 = 2
+c_15 = 6
+h_15(d) = K_15 + floor((12d + c_15) / 7)
+Ho_15 = -1
+Hb_15 = 1133113300221111
+Hx_15 = 3311331111433333
+Hy_15 = 2244224422332222
+Hz_15 = 6633663344666666
+
+voice counter {
+  pitch = if(Q == 0, 0, if(Q == 1, Zc_1, if(Q == 2, Zc_2, if(Q == 3, Zc_3, if(Q == 4, Zc_4, if(Q == 5, Zc_5, if(Q == 6, Zc_6, if(Q == 7, Zc_7, if(Q == 8, Zc_8, if(Q == 9, Zc_9, if(Q == 10, Zc_10, if(Q == 11, Zc_11, if(Q == 12, Zc_12, if(Q == 13, Zc_13, if(Q == 14, 0, 0)))))))))))))))
+  gate = if(Q == 0, 0, if(Q == 1, frac(T_1 / 16) < 0.985, if(Q == 2, 0.7 - frac(2T_2), if(Q == 3, 0.7 - frac(2T_3), if(Q == 4, 0.7 - frac(2T_4), if(Q == 5, 0.7 - frac(2T_5), if(Q == 6, frac(T_6 / 16) < 0.985, if(Q == 7, frac(T_7 / 16) < 0.985, if(Q == 8, frac(T_8 / 16) < 0.985, if(Q == 9, frac(T_9 / 16) < 0.985, if(Q == 10, frac(T_10 / 16) < 0.985, if(Q == 11, frac(T_11 / 16) < 0.985, if(Q == 12, frac(T_12 / 16) < 0.985, if(Q == 13, frac(T_13 / 16) < 0.985, if(Q == 14, 0, 0)))))))))))))))
+  gain = 0.0869
+  pan = -0.5
+  reverb = 0.3
+  wave = additive
+  partials = 0.2, -8.7, -10.6, -18.3, -20.8, -26.6, -27.1, -31.5, -31, -34.9, -34, -37.5
+  attack = 4.58
+  decay = 126.46
+  sustain = 0.4
+  release = 94.41
+  cutoff = if(Q == 0, 0, if(Q == 1, 2107.8, if(Q == 2, 2107.8, if(Q == 3, 2107.8, if(Q == 4, 2107.8, if(Q == 5, 2107.8, if(Q == 6, 2107.8, if(Q == 7, 2107.8, if(Q == 8, 2107.8, if(Q == 9, 2107.8, if(Q == 10, 2107.8, if(Q == 11, 2107.8, if(Q == 12, 2107.8, if(Q == 13, 2107.8, if(Q == 14, 0, 0)))))))))))))))
+  filter_env = 3.08
+  filter_decay = 176.03
+  detune = 13.67
+  rolloff = 660
+}
+
+voice lead {
+  pitch = if(Q == 0, Zl_0, if(Q == 1, Zl_1, if(Q == 2, Zl_2, if(Q == 3, Zl_3, if(Q == 4, Zl_4, if(Q == 5, Zl_5, if(Q == 6, Zl_6, if(Q == 7, Zl_7, if(Q == 8, Zl_8, if(Q == 9, Zl_9, if(Q == 10, Zl_10, if(Q == 11, Zl_11, if(Q == 12, Zl_12, if(Q == 13, Zl_13, if(Q == 14, Zl_14, 2)))))))))))))))
+  gate = if(Q == 0, frac(T_0 / 16) < 0.985, if(Q == 1, frac(T_1 / 16) < 0.985, if(Q == 2, frac(T_2 / 16) < 0.985, if(Q == 3, frac(T_3 / 16) < 0.985, if(Q == 4, frac(T_4 / 16) < 0.985, if(Q == 5, frac(T_5 / 16) < 0.985, if(Q == 6, frac(T_6 / 8) < 0.96, if(Q == 7, frac(T_7 / 8) < 0.96, if(Q == 8, frac(T_8 / 8) < 0.96, if(Q == 9, frac(T_9 / 8) < 0.96, if(Q == 10, frac(T_10 / 8) < 0.96, if(Q == 11, frac(T_11 / 8) < 0.96, if(Q == 12, frac(T_12 / 16) < 0.985, if(Q == 13, frac(T_13 / 16) < 0.985, if(Q == 14, if(tr_14 < 24, frac(tr_14 / 16) < 0.985, tr_14 < 25.5), 0)))))))))))))))
+  gain = 0.1442
+  pan = 0
+  reverb = 0.3
+  delay = 0.2
+  wave = additive
+  partials = 0.7, -10.4, -2.2, -18.5, -10.8, -24.4, -14.7
+  attack = 5.76
+  decay = 292.79
+  sustain = 0.35
+  release = 89.12
+  cutoff = if(Q == 0, 2052.91, if(Q == 1, 2052.91, if(Q == 2, 2052.91, if(Q == 3, 2052.91, if(Q == 4, 2052.91, if(Q == 5, 2052.91, if(Q == 6, 2052.91, if(Q == 7, 2052.91, if(Q == 8, 2052.91, if(Q == 9, 2052.91, if(Q == 10, 2052.91, if(Q == 11, 2052.91, if(Q == 12, 2052.91, if(Q == 13, 2052.91, if(Q == 14, 2052.91, 2052.91)))))))))))))))
+  filter_env = 2.28
+  filter_decay = 192.68
+  detune = 7.78
+  drive = 1.26
+  rolloff = 3268.23
+}
+
+drum kick {
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, Zz_2, if(Q == 3, Zz_3, if(Q == 4, Zz_4, if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, Zz_7, if(Q == 8, 0, if(Q == 9, Zz_9, if(Q == 10, Zz_10, if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, Zz_13, if(Q == 14, if(tr_14 < 23.75, Zz_14, (tr_14 >= 24)(tr_14 < 24.2)), 0)))))))))))))))
+  gain = 0.5966
+  kind = dash
+  from = 593.9
+  to = 42.65
+  dash = 19.24
+  hold = 30.58
+  decay = 97.93
+  length = 419.17
+  partials = 0, -18.5, -10.5, -17.7
+  rolloff = 660
+}
+
+drum clap {
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, Zx_3, if(Q == 4, Zx_4, if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, Zx_7, if(Q == 8, Zx_8, if(Q == 9, Zx_9, if(Q == 10, Zx_10, if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, Zx_13, if(Q == 14, 0, 0)))))))))))))))
+  gain = 0.4746
+  reverb = 0.2
+  kind = snare
+  decay = 102.69
+  length = 159.84
+}
+
+drum hat {
+  trigger = if(Q == 0, Zh_0, if(Q == 1, Zh_1, if(Q == 2, Zh_2, if(Q == 3, Zh_3, if(Q == 4, Zh_4, if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, Zh_7, if(Q == 8, 0, if(Q == 9, 0, if(Q == 10, 0, if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, Zh_13, if(Q == 14, 0, 0)))))))))))))))
+  amp = if(Q == 0, 0.4 + 0.15 ru_0(floor(2T_0)), if(Q == 1, 0.4 + 0.15 ru_1(floor(2T_1)), if(Q == 2, 0.4 + 0.15 ru_2(floor(2T_2)), if(Q == 3, 0.4 + 0.15 ru_3(floor(2T_3)), if(Q == 4, 0.4 + 0.15 ru_4(floor(2T_4)), if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, 0.4 + 0.15 ru_7(floor(2T_7)), if(Q == 8, 0, if(Q == 9, 0, if(Q == 10, 0, if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, 0.4 + 0.15 ru_13(floor(2T_13)), if(Q == 14, 0, 0)))))))))))))))
+  gain = 2.8
+  pan = 0.25
+  kind = hat
+  decay = 44.66
+  length = 97.36
+}
+
+drum perc {
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, 0, if(Q == 4, Zy_4, if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, Zy_7, if(Q == 8, 0, if(Q == 9, 0, if(Q == 10, Zy_10, if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, Zy_13, if(Q == 14, 0, 0)))))))))))))))
+  amp = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, 0, if(Q == 4, 0.5 + 0.25 (ru_4(floor(4T_4)) - 3), if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, 0.5 + 0.25 (ru_7(floor(4T_7)) - 3), if(Q == 8, 0, if(Q == 9, 0, if(Q == 10, 0.5 + 0.25 (ru_10(floor(4T_10)) - 3), if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, 0.5 + 0.25 (ru_13(floor(4T_13)) - 3), if(Q == 14, 0, 0)))))))))))))))
+  gain = 0.1491
+  pan = -0.3
+  reverb = 0.25
+  kind = hat
+  decay = 163.52
+  length = 430.1
+}
+
+drum fill {
+  kind = dash
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, 0, if(Q == 4, roll_4, if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, 0, if(Q == 8, 0, if(Q == 9, 0, if(Q == 10, roll_10, if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, 0, if(Q == 14, 0, 0)))))))))))))))
+  amp = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, 0, if(Q == 4, 0.3 + 0.17 (T_4 - 28), if(Q == 5, 0, if(Q == 6, 0, if(Q == 7, 0, if(Q == 8, 0, if(Q == 9, 0, if(Q == 10, 0.3 + 0.17 (T_10 - 28), if(Q == 11, 0, if(Q == 12, 0, if(Q == 13, 0, if(Q == 14, 0, 0)))))))))))))))
+  from = 1400
+  to = 300
+  dash = 6
+  hold = 3
+  decay = 40
+  length = 150
+  partials = 0, -14, -9, -16
+  rolloff = 660
+  gain = 0.4
+  pan = -0.15
+  reverb = 0.2
+}
+
+voice rise {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14
+  rolloff = 660
+  pitch = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, 0, if(Q == 4, 0, if(Q == 5, 0, if(Q == 6, sweep_6, if(Q == 7, sweep_7, if(Q == 8, 0, if(Q == 9, sweep_9, if(Q == 10, 0, if(Q == 11, 0, if(Q == 12, sweep_12, if(Q == 13, sweep_13, if(Q == 14, 0, 0)))))))))))))))
+  gate = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0, if(Q == 3, 0, if(Q == 4, 0, if(Q == 5, 0, if(Q == 6, T_6 >= 30, if(Q == 7, T_7 >= 30, if(Q == 8, 0, if(Q == 9, T_9 >= 30, if(Q == 10, 0, if(Q == 11, 0, if(Q == 12, T_12 >= 30, if(Q == 13, T_13 >= 30, if(Q == 14, 0, 0)))))))))))))))
+  gain = 0.1
+  attack = 2
+  release = 80
+  reverb = 0.3
+}

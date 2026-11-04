@@ -183,6 +183,14 @@ inline bool HasTxtExtension(const std::filesystem::path& p) {
   return x == ".txt";
 }
 
+// A seed file (since 2026-11-04): a stream's seed, kind and generator version; opening it replays the whole stream.
+inline bool HasSeedExtension(const std::filesystem::path& p) {
+  std::string x = p.extension().u8string();
+  std::transform(x.begin(), x.end(), x.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+  return x == ".seed";
+}
+inline bool IsSeedPath(const std::string& p) { return HasSeedExtension(std::filesystem::u8path(p)); }
+
 // Every *.txt song directly in each folder (not in subfolders), with its description, in folder
 // order and then by name (case-insensitive). A file found twice (the same folder given twice) is
 // listed once. A folder that does not exist or cannot be read, and a file that cannot be read, is
@@ -205,7 +213,7 @@ inline std::vector<SongEntry> ScanSongs(const std::vector<std::string>& dirs, st
     for (; it != end; it.increment(ec)) {
       if (ec) { if (errors) errors->push_back("cannot read " + d + ": " + ec.message()); break; }
       std::error_code fe;
-      if (!it->is_regular_file(fe) || !HasTxtExtension(it->path())) continue;
+      if (!it->is_regular_file(fe) || !(HasTxtExtension(it->path()) || HasSeedExtension(it->path()))) continue;
       fs::path canon = fs::weakly_canonical(it->path(), fe);
       std::string key = lower((fe ? it->path() : canon).u8string());
       if (std::find(seen.begin(), seen.end(), key) != seen.end()) continue;

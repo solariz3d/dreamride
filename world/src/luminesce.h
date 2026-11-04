@@ -139,6 +139,10 @@ LmSong*   lm_stream_window(const LmStream* stream, uint64_t first, uint64_t last
 int32_t   lm_stream_save(const LmStream* stream, uint64_t last, uint32_t count, const char* path_utf8,
                          char* err, size_t err_cap);
 int32_t   lm_stream_error(const LmStream* stream, char* buf, size_t cap);  // 1 (message in buf) if the stream failed
+// Seed files (since 2026-11-04): a seed, its kind and its generator version; opening one replays the whole stream.
+LmStream* lm_stream_start_seed_file(const char* path_utf8, uint32_t lookahead, uint32_t trace_step, char* err, size_t err_cap);
+int32_t   lm_stream_save_seed(const LmStream* stream, const char* path_utf8, char* err, size_t err_cap);  // 1 on success
+uint32_t  lm_stream_version(const LmStream* stream);  // the generator version composing it (0 for null)
 
 #ifdef __cplusplus
 }

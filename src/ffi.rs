@@ -701,3 +701,72 @@ pub unsafe extern "C" fn lm_stream_error(stream: *const LmStream, buf: *mut c_ch
         None => 0,
     }
 }
+
+/// Start the stream a seed file names ([`crate::stream::read_seed_file`]): its seed, its kind and its generator
+/// version, so the whole song replays as it was heard. As [`lm_stream_start`] otherwise. Null on error, with the
+/// message in `err` (an unreadable file, a malformed line, a version this build does not have).
+///
+/// # Safety
+/// `path` nul-terminated UTF-8; `err` null or `err_cap` writable bytes.
+#[no_mangle]
+pub unsafe extern "C" fn lm_stream_start_seed_file(path: *const c_char, lookahead: u32, trace_step: u32, err: *mut c_char, err_cap: usize) -> *mut LmStream {
+    let result = catch_unwind(AssertUnwindSafe(|| {
+        let p = read_str(path, "the path")?;
+        let text = std::fs::read_to_string(&p).map_err(|e| format!("cannot read {p}: {e}"))?;
+        let (seed, version) = crate::stream::read_seed_file(&text).map_err(|e| format!("{p}: {e}"))?;
+        let stream = Stream::start_version(seed, version, lookahead as u64, trace_step as usize)?;
+        let roster = stream.roster.iter().map(|n| cstring(n)).collect();
+        Ok::<LmStream, String>(LmStream { stream, strings: Mutex::new(HashMap::new()), roster })
+    }));
+    match result {
+        Ok(Ok(s)) => Box::into_raw(Box::new(s)),
+        Ok(Err(message)) => {
+            write_error(err, err_cap, &message);
+            std::ptr::null_mut()
+        }
+        Err(_) => {
+            write_error(err, err_cap, "internal error: the engine panicked while starting the stream");
+            std::ptr::null_mut()
+        }
+    }
+}
+
+/// Write the stream's seed file to `path`: 1 on success, 0 with the message in `err` (a stream started from a song
+/// has no seed file).
+///
+/// # Safety
+/// `stream` null or live; `path` nul-terminated UTF-8; `err` null or `err_cap` writable bytes.
+#[no_mangle]
+pub unsafe extern "C" fn lm_stream_save_seed(stream: *const LmStream, path: *const c_char, err: *mut c_char, err_cap: usize) -> i32 {
+    let Some(s) = stream.as_ref() else {
+        write_error(err, err_cap, "the stream is null");
+        return 0;
+    };
+    let p = match read_str(path, "the path") {
+        Ok(p) => p,
+        Err(m) => {
+            write_error(err, err_cap, &m);
+            return 0;
+        }
+    };
+    match catch_unwind(AssertUnwindSafe(|| s.stream.save_seed(std::path::Path::new(&p)))) {
+        Ok(Ok(_)) => 1,
+        Ok(Err(m)) => {
+            write_error(err, err_cap, &m);
+            0
+        }
+        Err(_) => {
+            write_error(err, err_cap, "internal error: the engine panicked while saving the seed");
+            0
+        }
+    }
+}
+
+/// The generator version composing the stream (0 for null).
+///
+/// # Safety
+/// `stream` null or live.
+#[no_mangle]
+pub unsafe extern "C" fn lm_stream_version(stream: *const LmStream) -> u32 {
+    stream.as_ref().map_or(0, |s| s.stream.version)
+}
