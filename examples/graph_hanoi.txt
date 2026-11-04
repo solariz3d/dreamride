@@ -1,0 +1,232 @@
+# The Tower of Hanoi's move sequence: at move k the disc that moves is the ruler v(k), and every pitched voice and the kick read it.
+#
+# v(k) counts the trailing zero bits of k: 0 1 0 2 0 1 0 3 0 1 0 2 0 1 0 4. The little disc moves every other step, the
+# bigger ones ever more rarely, the biggest once. The chord root falls by the ruler of the bar (one, two, three scale
+# steps, four at bar 16) and returns home every other bar. The lead climbs the ruler of the eighth on top of the
+# chord's fifth, so each bar starts high and falls back to the fifth; its highest note (the big disc, v = 6) lands on
+# beat 32, the first beat of the Ionian section, on a major chord. The disc voice glides, unquantized, from one
+# two-beat move's disc to the next; the glide lens holds each scale step and slides in the last quarter of it. The
+# kick lands where a big disc moves (sixteenths 0, 8 and 14 of each bar: every half bar, and an eighth before the
+# next); hat accents are the ruler of the sixteenth, capped at 3. From beat 16 a counter-line in quarters reads the
+# ruler upside down, below A4: it dips on beat 3 of every bar by the size of the disc that moves there, deepest
+# in bars 8 and 16. Pads stack the lens's thirds on the root, with two quiet copies an octave up. Modes from the digits
+# of 3254, sixteen beats each: Dorian, Aeolian (darker), Ionian (the bright half, the peak), Mixolydian. Feeling:
+# patience, falling home. 10 definitions (plus the time names e, n, f, k2). Clap: a pitch line dashing down on 2 and 4.
+# Measured (tools/measure/analyze.py): band energy 35/37/27/1.0/0.2 %, 95 spectral peaks per frame; beats 24-64
+# (all voices in) 35/37/26/1.0/0.2 % with 98 (the references: 41/37/20/1.6/0.2 % with 108, and 60/26/13/0.9/0.3 % with 143).
+
+bpm 96
+beats 64
+loop 1
+reverb_size 0.8
+reverb_predelay 15
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.3
+
+v(k) = (mod(k, 2) == 0) + (mod(k, 4) == 0) + (mod(k, 8) == 0) + (mod(k, 16) == 0) + (mod(k, 32) == 0) + (mod(k, 64) == 0) + (mod(k, 128) == 0)
+C = mod(floor(3254 / 10^(3 - min(floor(t / 16), 3))), 10)
+h(d) = floor((12d + C) / 7)
+g(u) = h(floor(u)) + (h(floor(u) + 1) - h(floor(u))) smooth((frac(u) - 0.75) / 0.25)
+R(b) = 0 - v(b + 1)
+e = floor(2t)
+n = floor(4t)
+f = frac(4t)
+lead(k) = h(R(floor(k / 8)) + v(k) + 4)
+k2 = floor(t / 2)
+u = R(floor(t / 4)) + v(k2 + 1) + (v(k2 + 2) - v(k2 + 1)) frac(t / 2)
+bassd = R(floor(t / 4)) + 4 (mod(floor(t), 4) == 2)
+chord(i) = h(R(floor(t / 4)) + 2i) - 12
+big(k, r) = v(k) >= r
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9, -22.9, -28
+  rolloff = 660
+  pitch = lead(e)
+  gate = (t >= 8)(0.8 - frac(2t))
+  gain = 0.2
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.6
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+voice disc {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14
+  rolloff = 660
+  pitch = g(u)
+  gate = (t >= 16)
+  gain = 0.07
+  pan = -0.3
+  attack = 200
+  release = 600
+  reverb = 0.5
+}
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = chord(0)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.08
+  pan = -0.35
+  attack = 80
+  release = 400
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = chord(1)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.075
+  pan = 0.15
+  attack = 80
+  release = 400
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = chord(2)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.07
+  pan = 0.4
+  attack = 80
+  release = 400
+  reverb = 0.4
+}
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = h(bassd) - 36
+  gate = 0.92 - frac(t)
+  gain = 0.27
+  attack = 3
+  decay = 250
+  sustain = 0.6
+}
+
+drum kick {
+  kind = dash
+  trigger = (big(n, 3) + big(n + 2, 4) > 0)(0.5 - f)
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.7
+}
+
+voice clap {
+  wave = additive
+  partials = 0, -6, -9, -12
+  rolloff = 660
+  pitch = 24 - 60 frac(t)
+  gate = (mod(floor(t), 2) == 1)(frac(t) < 0.09)
+  gain = 0.6
+  attack = 1
+  release = 20
+  reverb = 0.3
+}
+
+drum hat {
+  kind = dash
+  trigger = 0.5 - f
+  amp = 0.3 + 0.2 min(v(n), 3)
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 3
+  pan = 0.3
+}
+
+voice arp {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = h(R(floor(t / 4)) + 2 min(v(n), 3)) + 12
+  gate = (t >= 24)(0.6 - f)
+  gain = 0.08
+  pan = -0.2
+  attack = 2
+  decay = 120
+  sustain = 0.3
+  release = 60
+  reverb = 0.3
+  delay = 0.3
+}
+
+voice pad4 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = chord(3)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.05
+  pan = -0.1
+  attack = 80
+  release = 400
+  reverb = 0.4
+}
+
+voice padup1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = chord(1) + 12
+  gate = 0.97 - frac(t / 4)
+  gain = 0.03
+  pan = -0.25
+  attack = 160
+  release = 400
+  reverb = 0.4
+}
+
+voice padup2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = chord(2) + 12
+  gate = 0.97 - frac(t / 4)
+  gain = 0.03
+  pan = 0.3
+  attack = 160
+  release = 400
+  reverb = 0.4
+}
+
+voice counter {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = h(R(floor(t / 4)) + 7 - v(e + 4)) - 12
+  gate = (t >= 16)(0.85 - frac(t))
+  gain = 0.09
+  pan = 0.35
+  attack = 4
+  decay = 200
+  sustain = 0.4
+  release = 120
+  reverb = 0.35
+  delay = 0.2
+}

@@ -1,0 +1,370 @@
+# City-pop v2: sixteen bars of our own, F major, 100 bpm, swung sixteenths.
+#
+# What changed from the first sketch, and why (each is written as functions below):
+#   groove first   kick, bass and snare are written together on one swung 16th grid; the kick is
+#                  syncopated (1, the "and" of 2, 3), the bass locks to it, the snare has ghost notes.
+#   colour         chords are 9ths and a 13th, with one borrowed chord (the minor v) and two
+#                  secondary dominants (III7b9 pulling to vi, I13 pulling to IV across the loop).
+#                  Bars 1-4 are the stock "marusa" shape (IVmaj7 III7 vi7 v7 I7), common to
+#                  hundreds of songs; the voicings, lines, rhythm and form here are our own.
+#   breathing      pads re-strike at each chord change and duck under every kick, the duck read
+#                  from the kick pattern itself; hats get a deterministic velocity jitter.
+#   voicing        the pads play rootless voicings (3rd, 5th or 13th, 7th, 9th) kept in one octave
+#                  window and SORTED, so no two voices cross and the loop closes on itself.
+#   hook           a two-bar call (rising, syncopated, with an anticipation over beat 3) and answer
+#                  (falling, then space), repeated and varied, built from chord tones on strong
+#                  beats and chromatic approach notes off the beat.
+#   form           intro groove (1-4), hook (5-8), breakdown with a filter riser (9-12), everything
+#                  back with the hook lifted a chord tone and a harmony (13-15), snare fill (16).
+#   space          the lead rests on most downbeats, and the answer leaves half a bar empty.
+#
+# Pitch is in semitones from A4 = 440 Hz. Steps are swung sixteenths, numbered from the song start.
+
+bpm 100
+beats 64
+rate 48000
+
+# ======================================================================== time and patterns
+
+# 58% swing: inside each eighth, the second sixteenth lands late. A time warp, so every voice
+# that reads `step` and `ph` swings identically and the groove locks.
+sw(x) = (floor(2x) + max(frac(2x) / 1.16, (frac(2x) - 0.16) / 0.84)) / 2
+step(x) = floor(4 sw(x))                    # the swung sixteenth that x falls in
+ph(x) = frac(4 sw(x))                       # how far through it, 0..1
+bar(s) = mod(floor(s / 16), 16)             # the bar of step s, wrapped so the loop reads itself
+pos(s) = mod(s, 16)                         # step within its bar
+
+# Digit i (0..15) of a 16-digit pattern. Patterns are written one digit per sixteenth.
+d16(n, i) = mod(floor(n / 10^(15 - i)), 10)
+# Pick one of six patterns by a code 1..6.
+pick(c, p1, p2, p3, p4, p5, p6) = if(c < 2, p1, if(c < 3, p2, if(c < 4, p3, if(c < 5, p4, if(c < 6, p5, p6)))))
+smoothstep(u) = u^2(3 - 2u)
+
+# ======================================================================== harmony
+
+key = -4                                    # F4
+h(d) = floor((12d + 5) / 7)                 # scale degree to major-scale semitone
+
+# Two chords per bar (half-bar slots). One 16-digit number holds eight bars of roots (as scale
+# degrees) and another their qualities; the second eight bars change only the last two.
+#   bars:  IVmaj9  III7b9  vi9  v9 I13 | IVmaj9  III7b9  ii9 V13  Imaj9      (1-8, ends at rest)
+#          IVmaj9  III7b9  vi9  v9 I13 | IVmaj9  III7b9  vi9      v9 I13     (9-16, I13 -> IV)
+slot(s) = mod(floor(s / 8), 32)
+deg(s) = d16(if(slot(s) < 16, 3322554033221400, 3322554033225540), mod(slot(s), 16))
+qual(s) = d16(if(slot(s) < 16, 1144222311442311, 1144222311442223), mod(slot(s), 16))
+
+# Interval j (0 third, 1 fifth or 13th, 2 seventh, 3 ninth) of quality q:
+#   1 maj9 (4 7 11 14)   2 m9 (3 7 10 14)   3 dominant 13 (4 9 10 14)   4 dominant 7 b9 b13 (4 8 10 13)
+ivl(q, j) = 3j + d16(4344446554445554, 4j + q - 1)
+tone(j, s) = h(deg(s)) + ivl(qual(s), j)
+
+# Sorting four values with a five-comparator network: the k-th lowest.
+s0(a, b, c, d) = min(min(a, b), min(c, d))
+s1(a, b, c, d) = min(max(min(a, b), min(c, d)), min(max(a, b), max(c, d)))
+s2(a, b, c, d) = max(max(min(a, b), min(c, d)), min(max(a, b), max(c, d)))
+s3(a, b, c, d) = max(max(a, b), max(c, d))
+kth(k, a, b, c, d) = if(k < 1, s0(a, b, c, d), if(k < 2, s1(a, b, c, d), if(k < 3, s2(a, b, c, d), s3(a, b, c, d))))
+
+# The voicing: each chord tone folded into the octave [lo, lo + 12), then sorted, so voice k is
+# always the k-th lowest. Within one window, matching lowest to lowest is the least-moving way to
+# get from one chord to the next (sorted matching is optimal on a line).
+#
+# Why a fixed window and not "the inversion nearest the previous chord": that rule needs the
+# previous voicing, i.e. state or recursion, which the language does not have. Measured for this
+# progression (tests/example_music.rs), it would move 84 semitones per loop against this window's
+# 92, but it drifts down an octave every pass, so a loop would jump 48 semitones back at the seam.
+# The window was chosen as the least-moving of all positions (-5 and -6 tie at 92).
+wrap(z, lo) = lo + mod(z - lo, 12)
+voicing(k, s, lo) = kth(k, wrap(tone(0, s), lo), wrap(tone(1, s), lo), wrap(tone(2, s), lo), wrap(tone(3, s), lo))
+
+padlo = -6                                  # the pads' window: B3 .. A#4, the least-moving one (tests/example_music.rs)
+
+# ======================================================================== arrangement (one digit per bar)
+
+kicks = 1111111100001111                    # no kick in the breakdown
+snares = 1111111122221113                   # 1 groove, 2 breakdown, 3 the fill
+hats = 1111111122231111                     # 2 light, 3 the riser in bar 12
+basses = 1112112344451116
+leads = 0000121340401215                    # 0 rest, 1 call, 2 answer, 3 ending, 4 echo of the call, 5 last
+lifts = 0000000000001110                    # the hook a chord tone higher in 13-15
+keys_on = 0000111100001111
+harm_on = 0000000000001110
+on(n, s) = d16(n, bar(s))
+
+# ======================================================================== drums
+
+# Velocity digits per sixteenth, 0 = no hit. A trigger rises at the start of every step with a hit.
+hit(d, x) = if(d > 0, 0.5 - ph(x), -1)
+
+kickpat(s) = if(on(kicks, s) == 0, 0, if(mod(bar(s), 4) == 3, 8000006080000060, 8000006080000000))
+kickd(s) = d16(kickpat(s), pos(s))
+
+snarepat(s) = pick(on(snares, s), if(mod(bar(s), 8) == 7, 0000800200208044, 0000800200208002), 0000300000003000, 0000800234567888, 0, 0, 0)
+snared(s) = d16(snarepat(s), pos(s))
+
+hatpat(s) = pick(on(hats, s), 4262426242624262, 3030303030303030, 1122334455667788, 0, 0, 0)
+hatd(s) = d16(hatpat(s), pos(s))
+# A hashed jitter of -1, 0 or +1 on every hat that sounds, the same on every render.
+jit(s) = floor(3 frac(sin(12.9898 s + 4.1) * 43758.5453)) - 1
+hatv(s) = if(hatd(s) > 0, max(hatd(s) + jit(s), 1), 0)
+
+# Sidechain from the kick pattern: sixteenths since the last kick (4 = none lately), and a duck
+# that dips over 20 ms after each kick and recovers over two and a half sixteenths.
+kage(s) = if(kickd(s) > 0, 0, if(kickd(s - 1) > 0, 1, if(kickd(s - 2) > 0, 2, if(kickd(s - 3) > 0, 3, 4))))
+duck(x, depth) = 1 - depth smoothstep(clamp((kage(step(x)) + ph(x)) / 0.15, 0, 1)) (1 - smoothstep(clamp((kage(step(x)) + ph(x) - 0.15) / 2.5, 0, 1)))
+
+# ======================================================================== bass
+
+# Codes: 0 rest, 9 hold, 1 root, 2 octave, 3 fifth, 4 flat seventh,
+#        5 a semitone below the NEXT step's root (a chromatic approach into the change).
+bassd(s) = d16(pick(on(basses, s), 1990002019010205, 1902002519010205, 1990003019010305, 1999999900002900, 1999999510201025, 1902002519012345), pos(s))
+
+# Holds: how many 9s run back from step s (up to seven), and so the step the note started on.
+held(s) = (bassd(s) == 9)(1 + (bassd(s-1) == 9)(1 + (bassd(s-2) == 9)(1 + (bassd(s-3) == 9)(1 + (bassd(s-4) == 9)(1 + (bassd(s-5) == 9)(1 + (bassd(s-6) == 9)))))))
+broot(s) = mod(h(deg(s)) + 5, 12) - 5       # the root folded to within a fourth of F
+bassnote(c, s) = if(c == 5, broot(s + 1) - 1, broot(s) + if(c == 2, 12, if(c == 3, 7, if(c == 4, 10, 0))))
+bassat(s) = bassnote(bassd(s - held(s)), s - held(s))
+
+# ======================================================================== lead
+
+# Codes: 0 rest, 9 hold, 1-7 a rung on the chord ladder (the four voicing tones in the lead's
+# window, then the same an octave up), 8 a chromatic approach: a semitone below the next note.
+#   1 call:   rest on the downbeat, rise in a syncopated pickup, anticipate beat 3, answer on 4
+#   2 answer: fall by chord tones, then leave half the bar empty
+#   3 ending: settle on the lowest rung and hold it (phrase end)
+#   4 echo:   just the pickup of the call, in the breakdown
+#   5 last:   the high note, a fall, then out of the way of the fill
+leadd(s) = d16(if(on(leads, s) == 0, 0, pick(on(leads, s), 0034908599904039, 0040390299990000, 0023208199990000, 0000003499000000, 7999605900000000, 0)), pos(s))
+lheld(s) = (leadd(s) == 9)(1 + (leadd(s-1) == 9)(1 + (leadd(s-2) == 9)(1 + (leadd(s-3) == 9)(1 + (leadd(s-4) == 9)(1 + (leadd(s-5) == 9))))))
+
+leadlo = 3                                  # the lead's window starts at C5
+rung(i, s) = voicing(mod(i - 1, 4), s, leadlo) + 12 floor((i - 1) / 4)
+# A note takes the chord of the step AFTER its onset, so a note that starts one sixteenth before
+# a change (an anticipation) belongs to the new chord, as it does when a player pushes it.
+ladder(s, shift) = rung(leadd(s) + on(lifts, s) + shift, s + 1)
+leadnote(s, shift) = if(leadd(s) == 8, ladder(s + 1, shift) - 1, ladder(s, shift))
+leadat(x, shift) = leadnote(step(x) - lheld(step(x)), shift)
+# Vibrato that grows on held notes only.
+vib(x) = 0.18 min(lheld(step(x)), 3) / 3 * sin(tau * 5.5 * 0.6x)
+leadgate(x) = if(leadd(step(x)) == 0, -1, if(leadd(step(x) + 1) == 9, 1, 0.8 - ph(x)))
+
+# ======================================================================== voices
+
+drum kick {
+  kind = kick
+  trigger = hit(kickd(step(t)), t)
+  amp = kickd(step(t)) / 8
+  gain = 1.0
+}
+
+drum snare {
+  kind = snare
+  trigger = hit(snared(step(t)), t)
+  amp = snared(step(t)) / 8
+  gain = 0.5
+  pan = 0.05
+}
+
+drum hat {
+  kind = hat
+  trigger = hit(hatv(step(t)), t)
+  amp = hatv(step(t)) / 8
+  gain = 0.32
+  pan = 0.3
+}
+
+voice bass {
+  wave = saw
+  pitch = key - 24 + bassat(step(t))
+  gate = if(bassd(step(t)) == 0, -1, if(bassd(step(t) + 1) == 9, 1, 0.6 - ph(t)))
+  gain = 0.34
+  attack = 3
+  decay = 180
+  sustain = 0.55
+  release = 40
+  cutoff = 380
+  filter_env = 2.2
+  filter_decay = 90
+  resonance = 0.25
+  drive = 1.2
+}
+
+# Pads: four sorted voices, soft saws through a low-pass that opens in the breakdown (a riser
+# written as a function of t) and settles half-open when everything comes back. Each chord change
+# re-strikes them (the gate dips for the last 0.15 beat before it), so every chord blooms and
+# settles on its own envelope instead of droning, and they duck under the kick.
+padcut(x) = if(x < 32, 650, if(x < 48, 650 * 2^(2.3 (x - 32) / 16), 1300))
+changes(s) = max(deg(s + 8) != deg(s), qual(s + 8) != qual(s))
+padgate(x) = if(min(changes(floor(4x)), frac(x / 2) > 0.925), -1, 1)
+pad(k, x) = key + voicing(k, floor(4x), padlo)
+
+voice pad1 {
+  wave = saw
+  pitch = pad(0, t)
+  gate = padgate(t)
+  amp = duck(t, 0.5)
+  gain = 0.05
+  pan = -0.45
+  attack = 120
+  decay = 1500
+  sustain = 0.6
+  release = 160
+  cutoff = padcut(t)
+  resonance = 0.15
+}
+
+voice pad2 {
+  wave = saw
+  pitch = pad(1, t) + 0.06
+  gate = padgate(t)
+  amp = duck(t, 0.5)
+  gain = 0.045
+  pan = 0.15
+  attack = 120
+  decay = 1500
+  sustain = 0.6
+  release = 160
+  cutoff = padcut(t)
+  resonance = 0.15
+}
+
+voice pad3 {
+  wave = saw
+  pitch = pad(2, t) - 0.06
+  gate = padgate(t)
+  amp = duck(t, 0.5)
+  gain = 0.045
+  pan = -0.15
+  attack = 120
+  decay = 1500
+  sustain = 0.6
+  release = 160
+  cutoff = padcut(t)
+  resonance = 0.15
+}
+
+voice pad4 {
+  wave = saw
+  pitch = pad(3, t)
+  gate = padgate(t)
+  amp = duck(t, 0.5)
+  gain = 0.04
+  pan = 0.45
+  attack = 120
+  decay = 1500
+  sustain = 0.6
+  release = 160
+  cutoff = padcut(t)
+  resonance = 0.15
+}
+
+# Keys: the same voicing an octave up, as short offbeat stabs (the "and" of 1, the last
+# sixteenth of 2, the "and" of 3 and of 4). A stab on the sixteenth before a change anticipates it.
+keyd(s) = if(on(keys_on, s) == 0, 0, d16(0060000500600040, pos(s)))
+keygate(x) = if(keyd(step(x)) > 0, 0.7 - ph(x), -1)
+keynote(k, x) = key + 12 + voicing(k, step(x) + 1, padlo)
+
+voice keys1 {
+  wave = triangle
+  pitch = keynote(0, t)
+  gate = keygate(t)
+  amp = keyd(step(t)) / 6 * duck(t, 0.35)
+  gain = 0.07
+  pan = -0.3
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+}
+
+voice keys2 {
+  wave = triangle
+  pitch = keynote(1, t)
+  gate = keygate(t)
+  amp = keyd(step(t)) / 6 * duck(t, 0.35)
+  gain = 0.065
+  pan = -0.1
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+}
+
+voice keys3 {
+  wave = triangle
+  pitch = keynote(2, t)
+  gate = keygate(t)
+  amp = keyd(step(t)) / 6 * duck(t, 0.35)
+  gain = 0.065
+  pan = 0.1
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+}
+
+voice keys4 {
+  wave = triangle
+  pitch = keynote(3, t)
+  gate = keygate(t)
+  amp = keyd(step(t)) / 6 * duck(t, 0.35)
+  gain = 0.06
+  pan = 0.3
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+}
+
+voice lead {
+  wave = square
+  pitch = key + leadat(t, 0) + vib(t)
+  gate = leadgate(t)
+  amp = if(on(leads, step(t)) == 4, 0.6, 1)
+  gain = 0.2
+  pan = 0.1
+  attack = 4
+  decay = 300
+  sustain = 0.7
+  release = 120
+  cutoff = 2600
+  filter_env = 1
+  filter_decay = 120
+  resonance = 0.2
+}
+
+# A delay written as a function: the same lead, a dotted eighth later, quieter, on the other side.
+voice echo {
+  wave = square
+  pitch = key + leadat(t - 0.75, 0)
+  gate = leadgate(t - 0.75)
+  gain = 0.07
+  pan = -0.55
+  attack = 4
+  decay = 300
+  sustain = 0.6
+  release = 160
+  cutoff = 1500
+}
+
+# A chord tone below the lead, only when the hook comes back lifted.
+voice harmony {
+  wave = saw
+  pitch = key + leadat(t, -1)
+  gate = if(on(harm_on, step(t)) == 0, -1, leadgate(t))
+  gain = 0.1
+  pan = -0.2
+  attack = 6
+  decay = 300
+  sustain = 0.7
+  release = 120
+  cutoff = 1800
+}

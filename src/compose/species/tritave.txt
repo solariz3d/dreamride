@@ -1,0 +1,419 @@
+# SPECIES: TRITAVE. Bohlen-Pierce tuning in 12/8, odd harmonics only (src/compose/book.rs).
+#
+# The Bohlen-Pierce scale divides the tritave (3:1, an octave and a fifth) into 13 equal steps, bp(k) = Tk + 12 k
+# log2(3) / 13, about 1.463 semitones each. It has no octave. Its chords are the odd harmonics: the BP major triad
+# 3:5:7 is steps 0, 6 and 10. The Lambda mode picks 9 of the 13 steps, 0 1 3 4 6 7 9 10 12, which is exactly
+# floor(3d/2) for d = 0..8: lam(d). The melody is a Lissajous figure in the same odd ratios, sines of 3, 5 and 7 turns
+# a stage, so the generator and the tuning come from one idea. The timbre has odd partials only (a clarinet's), the
+# spectrum the scale was made for. The meter is 12/8: four dotted beats of three eighths, an eighth floor(3t).
+# Sources: H. Bohlen (1978), J. R. Pierce (1984), M. V. Mathews and J. R. Pierce on BP harmony (1988).
+
+== species
+name tritave
+title the Bohlen-Pierce scale in 12/8: thirteen steps to the tritave, no octave, odd harmonics only
+tuning Bohlen-Pierce, bp(k) = Tk + 12 k log2(3) / 13, through the Lambda mode lam(d) = floor(3d/2)
+meter 12/8 (four dotted beats of three eighths)
+generator a Lissajous figure in the odd ratios 3:5:7
+form loop arcs
+timbre odd partials only (clarinet-like)
+bpm 76 92
+weight 1
+explore yes
+register no
+open pads+hat | bass+kick | lead | counter+perc | bass+lead
+
+== helpers
+tq(i) = mod(floor(Tn / 10^(7 - mod(i, 8))), 10)
+tw(a, b, u) = a + (b - a) smooth((u - 0.6) / 0.4)
+
+== frame
+bp(k) = Tk + 12 k log2(3) / 13
+lam(d) = 13 floor(d / 9) + floor(3 mod(d, 9) / 2)
+
+# ================================================================================================= progressions (roots as Lambda degrees)
+
+== tritave/prog.lambda | progression | energy 2 | density 2 | mood strange bright
+# roots on Lambda degrees 0 0 4 4 2 2 6 5, a bar each, as the digits of one integer
+Tn = 442265
+Tk = -12
+
+== tritave/prog.dark | progression | energy 1 | density 1 | mood dark calm
+# roots 0 0 7 7 5 5 4 4: falling through the mode two bars at a time
+Tn = 775544
+Tk = -14
+
+== tritave/prog.drive | progression | energy 3 | density 3 | mood driving strange
+# roots 0 2 4 6 0 3 5 7: climbing a Lambda degree pair a bar, twice
+Tn = 2460357
+Tk = -11
+
+# ================================================================================================= leads
+
+== tritave/lead.lissajous | lead | energy 2 | density 2 | mood wander strange | glide
+# a Lissajous figure in the odd ratios: sines of 3, 5 and 7 turns over the stage summed into Lambda degrees, on eighths, gliding the last 40%
+Td(k) = floor(10 + 2.5 sin(3 tau k / 96) + 2 sin(5 tau k / 96) + 1.5 sin(7 tau k / 96))
+Tl = tw(bp(lam(Td(floor(3t)))), bp(lam(Td(floor(3t) + 1))), frac(3t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17, -120, -19
+  rolloff = 660
+  pitch = Tl
+  gate = frac(t / 8) < 0.96
+  gain = 0.17
+  pan = 0.1
+  attack = 20
+  decay = 500
+  sustain = 0.6
+  release = 200
+  reverb = 0.35
+  delay = 0.25
+}
+
+== tritave/lead.call | lead | energy 1 | density 1 | mood voice longing | glide
+# a slow voice on the dotted beats: the bar's root triad sung 0, 6, 10 steps and back, sliding, the vibrato arriving late
+Tl = tw(bp(lam(tq(j)) + 5 + 5 mod(floor(t), 3) + (mod(floor(t), 3) == 1)), bp(lam(tq(floor((t + 1) / 4))) + 5 + 5 mod(floor(t) + 1, 3) + (mod(floor(t) + 1, 3) == 1)), frac(t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -12, -120, -18, -120, -22
+  rolloff = 660
+  pitch = Tl + vibrato(note_age, 0.4, 0.5, 0.25, 5.3)
+  gate = frac(t / 16) < 0.93
+  gain = 0.19
+  pan = 0.05
+  attack = 70
+  decay = 600
+  sustain = 0.75
+  release = 400
+  reverb = 0.5
+  delay = 0.2
+}
+
+== tritave/lead.spiral | lead | energy 3 | density 3 | mood driving bright
+# the BP triad 3:5:7 climbed on every eighth through two tritaves and back down, from a tritave under the bar's root
+Ti(k) = min(mod(k, 12), 11 - mod(k, 12))
+Ts(k) = 5 mod(Ti(k), 3) + (mod(Ti(k), 3) == 1) + 13 floor(Ti(k) / 3)
+Tl = bp(lam(tq(j)) + Ts(floor(3t)) - 6)
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17
+  rolloff = 660
+  pitch = Tl
+  gate = 0.6 - frac(3t)
+  gain = 0.14
+  pan = 0.12
+  attack = 2
+  decay = 180
+  sustain = 0.3
+  release = 60
+  reverb = 0.35
+  delay = 0.25
+}
+
+# ================================================================================================= counter
+
+== tritave/counter.mirror | counter | energy 2 | density 1 | mood strange longing | glide
+# the Lissajous figure mirrored about degree 10 and read at half speed, a tritave lower: the lead's shape upside down
+Tm(k) = 20 - floor(10 + 2.5 sin(3 tau k / 48) + 2 sin(5 tau k / 48) + 1.5 sin(7 tau k / 48))
+Tc = tw(bp(lam(Tm(floor(1.5t))) - 13), bp(lam(Tm(floor(1.5t) + 1)) - 13), frac(1.5t))
+
+voice counter {
+  wave = additive
+  partials = 0, -120, -14, -120, -22
+  rolloff = 660
+  pitch = Tc
+  gate = frac(t / 8) < 0.9
+  gain = 0.12
+  pan = -0.35
+  attack = 60
+  decay = 600
+  sustain = 0.6
+  release = 300
+  reverb = 0.45
+}
+
+# ================================================================================================= basses
+
+== tritave/bass.shuffle | bass | energy 2 | density 2 | mood groove warm
+# the 12/8 shuffle: the root a tritave down on the long-short of each dotted beat, a tritave up on the last short of the bar
+Tb = bp(lam(tq(j)) - 13 + 13 (mod(floor(3t), 12) == 11))
+
+voice bass {
+  wave = additive
+  partials = 0, -120, -6, -120, -12, -120, -18
+  rolloff = 660
+  pitch = Tb
+  gate = (mod(floor(3t), 3) != 1)(0.75 - frac(3t))
+  gain = 0.18
+  attack = 4
+  decay = 300
+  sustain = 0.5
+  release = 70
+}
+
+== tritave/bass.walk | bass | energy 3 | density 2 | mood driving groove | glide
+# walking the Lambda mode on the dotted beats, root, up two, up three, then a step below the next bar's root, sliding in
+Tv(k) = if(mod(k, 4) == 3, lam(tq(floor(k / 4) + 1)) - 1, lam(tq(floor(k / 4)) + mod(floor(320 / 10^mod(k, 4)), 10))) - 13
+Tb = tw(bp(Tv(floor(t))), bp(Tv(floor(t) + 1)), frac(t))
+
+voice bass {
+  wave = additive
+  partials = 0, -120, -6, -120, -12, -120, -18
+  rolloff = 660
+  pitch = Tb
+  gate = 0.92 - frac(t)
+  gain = 0.18
+  attack = 6
+  decay = 400
+  sustain = 0.6
+  release = 90
+}
+
+== tritave/bass.drone | bass | energy 1 | density 1 | mood calm dark
+# the root a tritave down, held each bar, with the twelfth above it (the tritave, 3:1) breathing in on the third beat
+Tb = bp(lam(tq(j)) - 13 + 13 (mod(t, 4) >= 2))
+
+voice bass {
+  wave = additive
+  partials = 0, -120, -6, -120, -12
+  rolloff = 660
+  pitch = Tb
+  gate = 0.97 - frac(t / 4)
+  gain = 0.19
+  attack = 30
+  decay = 900
+  sustain = 0.7
+  release = 200
+}
+
+# ================================================================================================= pads
+
+== tritave/pads.triad | pads | energy 2 | density 1 | mood strange warm
+# the BP major triad 3:5:7, steps 0, 6 and 10 above the bar's root, struck each bar
+Tp(m, i) = bp(lam(tq(i)) + 5m + (m == 1))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -120, -9, -120, -15, -120, -20
+  rolloff = 660
+  pitch = Tp(0, j)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.09
+  pan = -0.3
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -120, -9, -120, -15, -120, -20
+  rolloff = 660
+  pitch = Tp(1, j)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.085
+  pan = 0.3
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -120, -9, -120, -15, -120, -20
+  rolloff = 660
+  pitch = Tp(2, j)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.08
+  pan = 0
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+== tritave/pads.minor | pads | energy 1 | density 1 | mood dark float
+# the BP minor triad, steps 0, 4 and 10, swelling over two bars as sin^2
+Tp(m, i) = bp(lam(tq(i)) + 4m + 2 (m == 2))
+Ta = 0.3 + 0.7 sin(pi frac(t / 8)) sin(pi frac(t / 8))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -120, -12, -120, -20
+  rolloff = 660
+  pitch = Tp(0, j)
+  gate = 0.98 - frac(t / 8)
+  amp = Ta
+  gain = 0.09
+  pan = -0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -120, -12, -120, -20
+  rolloff = 660
+  pitch = Tp(1, j)
+  gate = 0.98 - frac(t / 8)
+  amp = Ta
+  gain = 0.085
+  pan = 0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -120, -12, -120, -20
+  rolloff = 660
+  pitch = Tp(2, j)
+  gate = 0.98 - frac(t / 8)
+  amp = Ta
+  gain = 0.08
+  pan = 0
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+# ================================================================================================= drums (12/8)
+
+== tritave/kick.dotted | kick | energy 2 | density 1 | mood groove
+# the 12/8 kick: dotted beats 1 and 3, and the last eighth before beat 3
+Tz = ((mod(floor(3t), 12) == 0) + (mod(floor(3t), 12) == 5) + (mod(floor(3t), 12) == 6))(0.5 - frac(3t))
+
+drum kick {
+  kind = dash
+  trigger = Tz
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== tritave/kick.half | kick | energy 1 | density 1 | mood calm
+# one kick a bar, on the downbeat
+Tz = 0.5 - frac(t / 4)
+
+drum kick {
+  kind = dash
+  trigger = Tz
+  from = 420
+  to = 55
+  dash = 25
+  hold = 40
+  decay = 110
+  length = 420
+  partials = 0, -24, -12, -20
+  rolloff = 660
+  gain = 0.66
+}
+
+== tritave/hat.triplets | hat | energy 2 | density 3 | mood groove driving
+# every eighth of the 12/8, the first of each three louder: the shuffle's lilt
+Th = 0.5 - frac(3t)
+
+drum hat {
+  kind = dash
+  trigger = Th
+  amp = 0.45 + 0.55 (mod(floor(3t), 3) == 0)
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== tritave/clap.two_four | clap | energy 2 | density 1 | mood groove
+# the clap on dotted beats 2 and 4
+Tx = (mod(floor(t), 2) == 1)(0.5 - frac(t))
+
+drum clap {
+  kind = dash
+  trigger = Tx
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+== tritave/perc.third | perc | energy 2 | density 2 | mood strange groove
+# a tom on the third eighth of each dotted beat, pitched up on the bar's last
+Ty = (mod(floor(3t), 3) == 2)(0.5 - frac(3t))
+
+drum perc {
+  kind = dash
+  trigger = Ty
+  amp = 0.6 + 0.4 (mod(floor(3t), 12) == 11)
+  from = 300
+  to = 120
+  dash = 15
+  hold = 10
+  decay = 70
+  length = 300
+  partials = 0, -10, -18, -22
+  rolloff = 660
+  gain = 0.3
+  pan = -0.2
+  reverb = 0.25
+}
+
+# ================================================================================================= seams
+
+== tritave/seam.climb | seam | energy 3 | density 3 | mood into-return into-peak into-intro
+# the Lambda mode run up in eighths over the last two beats, six steps up from the last bar's root
+sweep = bp(lam(tq(7) + floor(3 (clamp(t, 30, 31.99) - 30))))
+
+voice rise {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 30)(0.6 - frac(3t))
+  gain = 0.1
+  attack = 1
+  decay = 120
+  sustain = 0.2
+  release = 40
+  reverb = 0.4
+}
+
+== tritave/seam.roll | seam | energy 2 | density 3 | mood into-return into-strip
+# a triplet roll over the last bar, sixteenth triplets in the final beat
+roll = (t >= 28)(0.5 - frac(3 (1 + (t >= 31)) t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.3 + 0.15 (t - 28)
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 50
+  length = 160
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}

@@ -1,0 +1,19 @@
+/target/
+*.tmp
+
+# Renders are build outputs. The example's render is kept (3.7 MB) so it can be heard without building.
+*.wav
+!/examples/citypop_sketch.wav
+
+# The world's build outputs and its capture images.
+/world/bin/
+/world/build/
+/world/captures/
+
+# Other people's public Desmos graphs, kept locally for study only (not ours to republish)
+docs/research/desmos_corpus/raw/
+__pycache__/
+
+# Local-only notes (the author's own words on taste, kept off the public repo)
+*.local.md
+.claude/skills/compose/taste.local.md

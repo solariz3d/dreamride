@@ -1,0 +1,8 @@
+# Ratings of composed songs, by ear. One line per song:
+# <song id> <keep | skip | 1-5> [a note]
+# e.g.  s7-c12 keep  the glide in bar 9
+# The song id is the s<seed>-c<index> in the file name. Lines starting with # are ignored. Each run appends a comment
+# listing its kept songs, so they can be rated in place. Nothing reads these yet: see docs/composer.md, "Learning
+# from ratings", for the plan.
+# run 20261103-004208: s7-c60 s7-c62 s7-c178 s7-c174 s7-c38
+s7-c38_squares keep  # 2026-11-02, blind as G: liked for its odd simplicity. Overall, on the blind set: the algorithm works but falls well short of the hand songs.

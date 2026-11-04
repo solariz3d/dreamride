@@ -1,0 +1,301 @@
+# Dark v3: sixteen bars of our own, E harmonic minor, 144 bpm felt at 72.
+#
+# THE FEELING: defiance with a crack of grief in it. Someone standing their ground after a loss:
+# the jaw set, the weight carried, and for two bars the surface breaks and the memory shows
+# through, before the stance comes back harder.
+#
+# What serves it (each is written as functions below, and checked in tests/example_music_v3.rs):
+#   1 the stance   the bell motif ends D# -> E, the raised seventh pushing UP into the tonic: a
+#                  resolution that refuses to sink. Every phrase of the drop ends that way.
+#   2 the menace   under the 808, a detuned saw pair growls on each chord root, its filter opening
+#                  with every two-bar phrase and closing at its end (Todd's arch, as a threat).
+#   3 the crack    bars 13-14: the drums stop, and the harmony moves somewhere it has not been:
+#                  G major, the relative major, the one bright chord in the song (a sudden
+#                  harmonic shift; Sloboda 1991). Over it, a crying voice: C6 on the downbeat (an
+#                  appoggiatura, a fourth over G) leans down onto B, then A, then G, each a sigh.
+#   4 the floor gives  through the crack the 808 holds, and at the end of each bar it sags down
+#                  three semitones as its note runs out, like a held breath let go.
+#   5 the stance returns  bar 15: the drums slam back, the bell's D# -> E again, and the last
+#                  phrase lifts to E6, higher than anything before it; then the 808 drops out
+#                  for the last beat, so the loop's first downbeat lands on air.
+#   6 a person playing  the bell is louder at the middle of its phrase than at its ends, louder
+#                  higher up (3 dB/octave) and louder when further from the chord root (melodic
+#                  charge, so the D# against E minor bites); the crying voice scoops into its
+#                  notes, grows a deep late vibrato and sighs at the end of its phrase.
+#   7 the room     a big dark reverb (long, heavily damped), the snare thrown into it; the bell
+#                  echoes on a dotted-eighth ping-pong; tape-style saturation for weight.
+#
+# The 808, hats, form and the bell's first motif are dark_halftime.txt's; the rest is new.
+
+bpm 144
+beats 64
+rate 48000
+
+# ======================================================================== space
+
+loop 1
+reverb_size 0.86
+reverb_damp 0.68
+reverb_predelay 28
+delay_beats 0.75
+delay_feedback 0.42
+delay_tone 2200
+wow 3
+wow_rate 0.3
+warmth 0.5
+
+# ======================================================================== time
+
+step(x) = floor(4x)
+ph(x) = frac(4x)
+bar(s) = mod(floor(s / 16), 16)
+pos(s) = mod(s, 16)
+d16(n, i) = mod(floor(n / 10^(15 - i)), 10)
+smoothstep(u) = u^2(3 - 2u)
+on(n, s) = d16(n, bar(s))
+# Position in the current two-bar phrase, 0..1.
+phr(x) = frac(x / 8)
+
+# ======================================================================== harmony
+
+key = -5                                    # E4
+hmi(i) = if(i == 6, 11, mod(floor(235780 / 10^(6 - i)), 10))
+hm(d) = 12 floor(d / 7) + hmi(mod(d, 7))
+
+# Eight two-bar chords: i (Em)  bVI (C)  iv (Am)  V (B)  i  bVI  bIII (G: the crack)  V.
+chord(s) = mod(floor(s / 32), 8)
+croot(s) = d16(8570837, chord(s) + 8)       # 0 8 5 7 0 8 3 7, semitones above E
+cthird(s) = d16(34343444, chord(s) + 8)     # minor or major third
+
+wrap(z, lo) = lo + mod(z - lo, 12)
+ta(s, lo) = wrap(croot(s), lo)
+tb(s, lo) = wrap(croot(s) + cthird(s), lo)
+tc(s, lo) = wrap(croot(s) + 7, lo)
+tlow(s, lo) = min(min(ta(s, lo), tb(s, lo)), tc(s, lo))
+thigh(s, lo) = max(max(ta(s, lo), tb(s, lo)), tc(s, lo))
+tri(k, s, lo) = if(k < 1, tlow(s, lo), if(k < 2, ta(s, lo) + tb(s, lo) + tc(s, lo) - tlow(s, lo) - thigh(s, lo), thigh(s, lo)))
+
+# ======================================================================== arrangement (a digit per bar)
+
+drums_on = 0000111111110011                 # the motif alone, then the drop; out for the crack (13-14)
+hats_on = 0001111111110011
+b808s = 0000121212123312                    # 1 main, 2 answer, 3 held (the crack)
+snares = 0000111211120011
+crack(s) = min(bar(s) >= 12, bar(s) < 14)
+
+# ======================================================================== 808 (as dark_halftime)
+
+b808d(s) = d16(if(on(b808s, s) == 0, 0, if(bar(s) == 15, 1999999900190000, if(on(b808s, s) == 1, 1999999900199969, if(on(b808s, s) == 2, 1999990199039910, 1999999919999999)))), pos(s))
+held8(s) = (b808d(s) == 9)(1 + (b808d(s-1) == 9)(1 + (b808d(s-2) == 9)(1 + (b808d(s-3) == 9)(1 + (b808d(s-4) == 9)(1 + (b808d(s-5) == 9)(1 + (b808d(s-6) == 9)))))))
+onset8(s) = s - held8(s)
+note8(c, s) = croot(s) + if(c == 3, 7, if(c == 6, 12, 0))
+age8(x) = held8(step(x)) + ph(x)
+punch(x) = 7 (1 - smoothstep(clamp(age8(x) / 0.35, 0, 1)))
+slide(x) = -12 (1 - smoothstep(clamp(age8(x) / 0.6, 0, 1)))
+p808(x) = note8(b808d(onset8(step(x))), onset8(step(x))) + if(b808d(onset8(step(x))) == 6, slide(x), punch(x))
+gate808(x) = if(b808d(step(x)) == 0, -1, if(max(b808d(step(x) + 1) == 9, b808d(step(x) + 1) == 6), 1, 0.85 - ph(x)))
+# The floor gives: in the crack, each held 808 sags three semitones over its last 0.35 s.
+sag(x) = -3 crack(step(x)) (1 - smooth(note_left / 0.35))
+
+# ======================================================================== drums
+
+struck(s) = max(b808d(s) == 1, b808d(s) == 3)
+kickd(s) = if(min(on(drums_on, s), struck(s)) > 0, if(pos(s) == 0, 8, 6), 0)
+snared(s) = if(on(drums_on, s) == 0, 0, d16(if(on(snares, s) == 2, 0000000080000303, 0000000080000000), pos(s)))
+hit(d, x) = if(d > 0, 0.5 - ph(x), -1)
+
+hatgroup(x) = mod(floor(x / 16), 4)
+hatrate(x) = d16(if(hatgroup(x) < 1, 68, if(hatgroup(x) < 2, 4444444444444486, if(hatgroup(x) < 3, 4444444444444448, 2222222244444466))), mod(floor(x), 16))
+roll(x) = hatrate(x) > 4
+hatvel(x) = if(roll(x), 0.3 + 0.6 frac(x), 0.45 + 0.35 (mod(floor(4x), 2) == 0) + 0.1 floor(3 frac(sin(12.9898 floor(4x)) * 43758.5453)) - 0.1)
+
+kage(s) = if(kickd(s) > 0, 0, if(kickd(s - 1) > 0, 1, if(kickd(s - 2) > 0, 2, if(kickd(s - 3) > 0, 3, 4))))
+duck(x) = 1 - 0.6 smoothstep(clamp((kage(step(x)) + ph(x)) / 0.15, 0, 1)) (1 - smoothstep(clamp((kage(step(x)) + ph(x) - 0.15) / 3, 0, 1)))
+
+# ======================================================================== the bell, and the crying voice
+
+# One digit per sixteenth, as in citypop_v3: rhythm 0 rest, 1 start, 2 hold; pitch
+#   0 B4  1 D5  2 D#5  3 E5  4 F#5  5 G5  6 A5  7 B5  8 C6  9 E6
+# Bell, as dark_halftime:  A  B G F# E D# E (3-3-2 / 3-3-2), ending UP on E
+#                          B  E held, G, F#, down to B4;  B' (bar 16 only) the same rising to A and E6
+# Crying voice, bars 13-14 over G major:  C6 -> B5 -> A5 | G5 held ... B4
+belcode(s) = if(crack(s), 0, if(mod(bar(s), 2) == 0, 1, if(bar(s) == 15, 3, 2)))
+bellr(s) = d16(if(belcode(s) == 0, 0, if(belcode(s) == 1, 1221221212212212, 1222221212221222)), pos(s))
+bellp(s) = d16(if(belcode(s) == 1, 7775554433322233, if(belcode(s) == 2, 3333335544440000, 3333335566669999)), pos(s))
+cryr(s) = if(crack(s), d16(if(bar(s) == 12, 1222221222221222, 1222222222001200), pos(s)), 0)
+cryp(s) = d16(if(bar(s) == 12, 8888887777776666, 5555555555000000), pos(s))
+# Pitch codes to semitones above E5.
+code(k) = if(k == 0, -5, if(k == 1, -2, if(k == 2, -1, if(k == 3, 0, if(k == 4, 2, if(k == 5, 3, if(k == 6, 5, if(k == 7, 7, if(k == 8, 8, 12)))))))))
+
+bheld(s) = (bellr(s) == 2)(1 + (bellr(s-1) == 2)(1 + (bellr(s-2) == 2)(1 + (bellr(s-3) == 2)(1 + (bellr(s-4) == 2)(1 + (bellr(s-5) == 2))))))
+bon(s) = s - bheld(s)
+bnote(s) = code(bellp(bon(s)))
+cheld(s) = (cryr(s) == 2)(1 + (cryr(s-1) == 2)(1 + (cryr(s-2) == 2)(1 + (cryr(s-3) == 2)(1 + (cryr(s-4) == 2)(1 + (cryr(s-5) == 2)(1 + (cryr(s-6) == 2)(1 + (cryr(s-7) == 2)(1 + (cryr(s-8) == 2)(1 + (cryr(s-9) == 2))))))))))
+con(s) = s - cheld(s)
+cnote(s) = code(cryp(con(s)))
+
+# The bell keeps a hint of phrase time (it is a machine, but a played one); the crying voice
+# much more, because it is the one place the song lets go.
+bx(x) = 8 phrase(x / 8, 0.06, 0.55)
+cx(x) = 8 phrase(x / 8, 0.2, 0.55)
+
+# Inner notes detached, the last note before a rest held to its end (final lengthening).
+bellgate(x) = if(bellr(step(bx(x))) == 0, -1, if(bellr(step(bx(x)) + 1) == 2, 1, if(bellr(step(bx(x)) + 1) == 0, 0.97 - ph(bx(x)), 0.88 - ph(bx(x)))))
+crygate(x) = if(cryr(step(cx(x))) == 0, -1, if(cryr(step(cx(x)) + 1) == 2, 1, 0.97 - ph(cx(x))))
+
+# Dynamics per note in dB at its onset: Todd's arch over the two-bar phrase, KTH High Loud and
+# KTH melodic charge against the chord root (k = 2).
+belldb(s) = 3 (arch(frac(s / 32), 0.55) - 1) + bnote(s) / 4 + 0.4 charge(bnote(s) - croot(s))
+crydb(s) = 5 (arch(frac(s / 32), 0.4) - 1) + 0.4 charge(cnote(s) - croot(s))
+
+# The crying voice's pitch: scooped from below, a deep vibrato after 0.2 s, and a sigh down at
+# the end of its phrase.
+cends(x) = max(cryr(step(cx(x)) + 1) == 0, cryr(step(cx(x))) == 0)
+crypitch(x) = key + 12 + cnote(step(cx(x))) - 0.6 (1 - smooth(note_age / 0.09)) + vibrato(note_age, 0.2, 0.6, 0.32, 5.6) - 1.2 cends(x) (1 - smooth(note_left / 0.2))
+
+# ======================================================================== voices
+
+voice b808 {
+  wave = sine
+  pitch = key - 36 + p808(t) + sag(t)
+  gate = gate808(t)
+  amp = db(-5 crack(step(t)))       # in the crack the floor is quieter, then sags
+  gain = 0.42
+  attack = 1
+  decay = 1400
+  sustain = 0.25
+  release = 60
+  drive = 3
+}
+
+drum kick {
+  kind = kick
+  trigger = hit(kickd(step(t)), t)
+  amp = kickd(step(t)) / 8
+  gain = 0.75
+}
+
+drum snare {
+  kind = snare
+  trigger = hit(snared(step(t)), t)
+  amp = snared(step(t)) / 8
+  gain = 0.7
+  reverb = 0.45
+}
+
+drum hat {
+  kind = hat
+  trigger = if(min(hatrate(t), on(hats_on, step(t))) > 0, 0.5 - frac(hatrate(t) t), -1)
+  amp = hatvel(t) * db(2 arch(phr(t), 0.6) - 1)
+  gain = 0.28
+  pan = 0.25
+  reverb = 0.08
+}
+
+voice bell {
+  wave = triangle
+  pitch = key + 12 + bnote(step(bx(t))) + vibrato(note_age, 0.3, 0.5, 0.08, 6)
+  gate = bellgate(t)
+  amp = db(belldb(bon(step(bx(t)))))
+  gain = 0.34
+  pan = 0.15
+  attack = 1
+  decay = 500
+  sustain = 0.15
+  release = 300
+  cutoff = if(t < 16, 500 * 2^(3 t / 16), 4000)
+  detune = 4
+  reverb = 0.22
+  delay = 0.3
+}
+
+voice cry {
+  wave = triangle
+  pitch = crypitch(t)
+  gate = crygate(t)
+  amp = db(crydb(con(step(cx(t)))))
+  gain = 0.3
+  pan = -0.1
+  attack = 35
+  decay = 900
+  sustain = 0.7
+  release = 450
+  cutoff = 2600
+  detune = 7
+  reverb = 0.7
+  delay = 0.22
+}
+
+# The menace: a detuned saw pair on the chord root, an octave above the 808, in the drop only.
+# Its filter opens through each two-bar phrase and closes at the end, re-struck at each chord.
+voice growl {
+  wave = saw
+  pitch = key - 24 + croot(step(t))
+  gate = if(min(on(drums_on, step(t)), frac(t / 8) < 0.97) > 0, 1, -1)
+  amp = duck(t)
+  gain = 0.085
+  attack = 30
+  decay = 2000
+  sustain = 0.8
+  release = 120
+  cutoff = 170 * 2^(2.3 arch(phr(t), 0.7))
+  resonance = 0.35
+  drive = 2.5
+  detune = 22
+}
+
+# A low, dark triad pad; re-struck at each chord, ducking under the kick. In the crack it opens
+# and swells: the memory, briefly in the light.
+padgate(x) = if(frac(x / 8) > 0.97, -1, 1)
+padcut(x) = if(crack(step(x)), 600 * 2^(1.3 arch(phr(x), 0.5)), 500)
+padamp(x) = duck(x) * db(if(crack(step(x)), 4 arch(phr(x), 0.5), 0))
+
+voice pad1 {
+  wave = saw
+  pitch = key - 12 + tri(0, step(t), -2)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.05
+  pan = -0.4
+  attack = 400
+  decay = 3000
+  sustain = 0.5
+  release = 300
+  cutoff = padcut(t)
+  resonance = 0.3
+  detune = 12
+  reverb = 0.35
+}
+
+voice pad2 {
+  wave = saw
+  pitch = key - 12 + tri(1, step(t), -2)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.045
+  attack = 400
+  decay = 3000
+  sustain = 0.5
+  release = 300
+  cutoff = padcut(t)
+  resonance = 0.3
+  detune = 14
+  reverb = 0.35
+}
+
+voice pad3 {
+  wave = saw
+  pitch = key - 12 + tri(2, step(t), -2)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.045
+  pan = 0.4
+  attack = 400
+  decay = 3000
+  sustain = 0.5
+  release = 300
+  cutoff = padcut(t)
+  resonance = 0.3
+  detune = 10
+  reverb = 0.35
+}

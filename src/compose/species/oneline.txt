@@ -1,0 +1,293 @@
+# SPECIES: ONELINE. The single-curve illusion: one function, one dot, heard as bass, chords and melody (src/compose/book.rs).
+#
+# One voice draws everything tonal. Its pitch leaps between registers 21 times a second (8 steps a beat at 150-170
+# bpm): the bass two octaves down, a chord tone, the melody on top, another chord tone. Faster than about ten notes a
+# second and further apart than an octave, the ear stops hearing one line and splits it into streams (Bregman's
+# auditory streaming), so a single curve is heard as a band. That is the chiptune arpeggio chord, and the old trick
+# of Baroque solo writing (implied polyphony). The melody inside is the ruler sequence, the 2-adic order of the step
+# number (0 1 0 2 0 1 0 3 ...), so it has the self-similar rise and fall of a Tower of Hanoi, climbing the chord's
+# ladder Hc. Since 2026-11-03 the chords are a written progression (harmony.txt) in the song's key: the curve's bass is
+# the progression's bass note, its chord tones the pads' voice-led voicing, its melody the ladder. The breakdown can
+# reveal the trick: the melody alone. Sources: A. S. Bregman, Auditory Scene Analysis (1990); L. P. A. S. van Noorden
+# (1975) on the temporal coherence boundary; on implied polyphony, J. S. Bach's solo suites and partitas.
+
+== species
+name oneline
+title the single-curve illusion: one function leaping fast enough to be heard as bass, chords and melody
+tuning 12-tone equal temperament: a written progression in the song's key, every step of the curve a chord tone
+meter 4/4, eight steps a beat
+generator one curve cycling registers (auditory streaming), its melody the ruler sequence
+harmony yes
+form loop arcs, with the illusion taken apart in the breakdowns
+timbre chip squares (odd partials) and dash percussion
+bpm 150 170
+weight 1
+open lead | lead+kick | kick+hat | lead+hat | counter+perc
+
+== helpers
+ru(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+
+# ================================================================================================= progressions
+# The progression slot holds the written progressions of harmony.txt (src/compose/harmony.rs adds them as modules).
+
+# ================================================================================================= the curve
+
+== oneline/lead.four | lead | energy 2 | density 2 | mood bright driving
+# one curve, four registers: the bass note two octaves down, a chord tone, the ruler-sequence melody on top climbing the chord's ladder, another chord tone, eight steps a beat
+Zv(k) = if(mod(k, 4) == 0, Hr(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc(7 - ru(floor(k / 4)), floor(k / 16)) + 12, Hv(1 + (mod(k, 4) == 3), floor(k / 16))))
+Zl = Zv(floor(8t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17, -120, -19
+  rolloff = 660
+  pitch = Zl
+  gate = frac(t / 16) < 0.985
+  gain = 0.16
+  pan = 0
+  attack = 3
+  decay = 400
+  sustain = 0.8
+  release = 60
+  reverb = 0.25
+  delay = 0.15
+}
+
+== oneline/lead.three | lead | energy 3 | density 3 | mood driving
+# three registers in triplets, six steps a beat: the bass note, the melody up the chord's ladder, a chord tone (two voices of the voicing taking turns)
+Zv(k) = if(mod(k, 3) == 0, Hr(floor(k / 12)) - 24, if(mod(k, 3) == 1, Hc(7 - ru(floor(k / 3)), floor(k / 12)) + 12, Hv(1 + mod(floor(k / 3), 2), floor(k / 12))))
+Zl = Zv(floor(6t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17
+  rolloff = 660
+  pitch = Zl
+  gate = frac(t / 16) < 0.985
+  gain = 0.16
+  pan = 0
+  attack = 3
+  decay = 400
+  sustain = 0.8
+  release = 60
+  reverb = 0.25
+  delay = 0.15
+}
+
+== oneline/lead.rolled | lead | energy 1 | density 2 | mood calm bright
+# the chord rolled up its ladder on every beat, six steps, bass first, the top note the ruler melody
+Zv(k) = if(mod(k, 6) == 5, Hc(5 - ru(floor(k / 6)), floor(k / 12)) + 12, Hc(mod(k, 6), floor(k / 12)) - 12)
+Zl = Zv(floor(6t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17
+  rolloff = 660
+  pitch = Zl
+  gate = frac(t / 16) < 0.985
+  gain = 0.16
+  pan = 0
+  attack = 3
+  decay = 400
+  sustain = 0.8
+  release = 60
+  reverb = 0.3
+  delay = 0.2
+}
+
+== oneline/lead.revealed | lead | energy 1 | density 1 | mood voice calm | glide
+# the trick taken apart: only the melody the curve was carrying, on eighths, gliding into each over the last 40%
+Zm(m) = Hc(7 - ru(m), floor(m / 4))
+Zl = Zm(floor(2t)) + (Zm(floor(2t) + 1) - Zm(floor(2t))) smooth((frac(2t) - 0.6) / 0.4)
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9
+  rolloff = 660
+  pitch = Zl
+  gate = frac(t / 8) < 0.96
+  gain = 0.18
+  pan = 0.05
+  attack = 30
+  decay = 500
+  sustain = 0.7
+  release = 250
+  reverb = 0.4
+  delay = 0.25
+}
+
+# ================================================================================================= the echo channel
+
+== oneline/counter.echo | counter | energy 2 | density 2 | mood bright strange
+# the second channel's old trick: the four-register curve again, three steps late and an octave up, quiet, panned away
+Ze(k) = if(mod(k, 4) == 0, Hr(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc(7 - ru(floor(k / 4)), floor(k / 16)) + 12, Hv(1 + (mod(k, 4) == 3), floor(k / 16)))) + 12
+Zc = Ze(max(floor(8t) - 3, 0))
+
+voice counter {
+  wave = additive
+  partials = 0, -120, -12, -120, -18
+  rolloff = 660
+  pitch = Zc
+  gate = frac(t / 16) < 0.985
+  gain = 0.07
+  pan = -0.5
+  attack = 3
+  decay = 400
+  sustain = 0.8
+  release = 60
+  reverb = 0.3
+}
+
+== oneline/counter.bassline | counter | energy 3 | density 2 | mood driving groove
+# a second channel taking the bass out of the curve: the bass note and its octave on eighths, the ruler's peaks dropping to the fifth below
+Zc = Hr(floor(t / 2)) - 24 + 12 mod(floor(2t), 2) - 5 (ru(floor(2t)) >= 3)
+
+voice counter {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20
+  rolloff = 660
+  pitch = Zc
+  gate = 0.7 - frac(2t)
+  gain = 0.14
+  pan = -0.1
+  attack = 3
+  decay = 200
+  sustain = 0.5
+  release = 50
+}
+
+# ================================================================================================= chip drums
+
+== oneline/kick.chip | kick | energy 2 | density 2 | mood driving
+# beats 1 and 3, and the and of 2: the chip-tune kick, a short steep dash
+Zz = ((mod(floor(2t), 8) == 0) + (mod(floor(2t), 8) == 3) + (mod(floor(2t), 8) == 4))(0.5 - frac(2t))
+
+drum kick {
+  kind = dash
+  trigger = Zz
+  from = 600
+  to = 60
+  dash = 14
+  hold = 25
+  decay = 70
+  length = 280
+  partials = 0, -24, -12, -20
+  rolloff = 660
+  gain = 0.7
+}
+
+== oneline/kick.four | kick | energy 3 | density 2 | mood driving
+# four on the floor, short
+Zz = 0.5 - frac(t)
+
+drum kick {
+  kind = dash
+  trigger = Zz
+  from = 600
+  to = 60
+  dash = 14
+  hold = 25
+  decay = 70
+  length = 280
+  partials = 0, -24, -12, -20
+  rolloff = 660
+  gain = 0.7
+}
+
+== oneline/hat.chip | hat | energy 2 | density 2 | mood driving
+# a short bright tick every eighth, the ones on the ruler's peaks louder
+Zh = 0.5 - frac(2t)
+
+drum hat {
+  kind = dash
+  trigger = Zh
+  amp = 0.4 + 0.15 ru(floor(2t))
+  from = 8000
+  to = 6000
+  dash = 4
+  decay = 10
+  length = 60
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.8
+  pan = 0.25
+}
+
+== oneline/clap.chip | clap | energy 2 | density 1 | mood driving
+# the backbeat as a fast high dash, 2 and 4
+Zx = (mod(floor(t), 2) == 1)(0.5 - frac(t))
+
+drum clap {
+  kind = dash
+  trigger = Zx
+  from = 1600
+  to = 300
+  dash = 6
+  hold = 5
+  decay = 45
+  length = 200
+  partials = 0, -14, -9, -16, -15
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.2
+}
+
+== oneline/perc.blip | perc | energy 1 | density 1 | mood strange
+# a blip where the ruler sequence peaks (every eighth sixteenth), pitched by how high it peaks
+Zy = (ru(floor(4t)) >= 3)(0.5 - frac(4t))
+
+drum perc {
+  kind = dash
+  trigger = Zy
+  amp = 0.5 + 0.25 (ru(floor(4t)) - 3)
+  from = 2400
+  to = 1800
+  dash = 3
+  hold = 3
+  decay = 20
+  length = 90
+  partials = 0, -12, -20
+  rolloff = 660
+  gain = 0.5
+  pan = -0.3
+  reverb = 0.25
+}
+
+# ================================================================================================= seams
+
+== oneline/seam.sweep | seam | energy 3 | density 3 | mood into-return into-peak into-intro
+# the arpeggio pulled up and out: the last two beats' chord tones climbing four octaves at 16 steps a beat
+sweep = Hc(floor(16 (clamp(t, 30, 31.99) - 30) / 3.2), 15)
+
+voice rise {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14
+  rolloff = 660
+  pitch = sweep
+  gate = t >= 30
+  gain = 0.1
+  attack = 2
+  release = 80
+  reverb = 0.3
+}
+
+== oneline/seam.roll | seam | energy 3 | density 3 | mood into-return into-strip
+# a chip snare roll on sixteenths over the last bar, louder each beat
+roll = (t >= 28)(0.5 - frac(4t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.3 + 0.17 (t - 28)
+  from = 1400
+  to = 300
+  dash = 6
+  hold = 3
+  decay = 40
+  length = 150
+  partials = 0, -14, -9, -16
+  rolloff = 660
+  gain = 0.4
+  pan = -0.15
+  reverb = 0.2
+}

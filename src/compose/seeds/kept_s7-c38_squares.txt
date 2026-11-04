@@ -1,0 +1,175 @@
+# Composed by luminesce-compose, seed 7 candidate 38: a squares song, grown from one generator through a scale lens.
+#
+# sq(v) is a square wave, 0 for the first half of each cycle and 1 for the second: sums of them at time scales an
+# octave apart are binary counting, read as music (Walsh functions). The chord roots are two square waves 2 and 4 bars
+# long. The melody is the root plus 3 square waves: 1 x period 8, 2 x period 16, 4 x period 2. The lens brightens one
+# sharp a section, Aeolian to Ionian. The lead is h(M) on every sixteenth, plucked, sounding on a Euclidean E(4, 8),
+# gliding into the next note. A harmony doubles the lead a diatonic fifth above. 4 pads stack thirds on the root,
+# struck each bar. The bass jumps octaves on the root in eighths. The kick is drawn from the generator's own sequence.
+# The clap is a dash on 2 and 4. The hats are sixteenths, their loudness read from the generator. Form: an arch: thin,
+# full, full, thinning.
+# 8 definitions and 7 time names.
+
+bpm 106
+beats 64
+loop 1
+reverb_size 0.75
+reverb_predelay 21
+delay_beats 1.5
+delay_feedback 0.3
+warmth 0.2
+
+sq(v) = floor(2 frac(v))
+c = 2 + s
+h(d) = floor((12d + c) / 7)
+R(i) = 2 sq(i / 2) - 1 sq(i / 4)
+M(k) = R(floor(k / 16)) + 1 sq(k / 8 + 0.25) + 2 sq(k / 16) + 4 sq(k / 2 + 0.5)
+lead(k) = h(M(k)) - 1
+lay(N) = mod(floor(N / 10^(3 - s)), 10)
+on(k) = mod(4 mod(k + 7, 8), 8) < 4
+n = floor(4t)
+f = frac(4t)
+e = floor(4t)
+u = frac(4t)
+b = frac(t)
+j = floor(t / 4)
+s = floor(t / 16)
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = lead(e) + (lead(e + 1) - lead(e)) smooth((u - 0.75) / 0.25)
+  gate = lay(1110)on(e)(0.5 - u)
+  gain = 0.16
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+voice harmony {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = h(M(e) + 4) - 1 + (h(M(e + 1) + 4) - h(M(e) + 4)) smooth((u - 0.75) / 0.25)
+  gate = lay(0100)on(e)(0.5 - u)
+  gain = 0.072
+  pan = -0.25
+  attack = 8
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.35
+}
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j)) - 13
+  gate = 0.97 - frac(t / 4)
+  gain = 0.09
+  pan = -0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 2) - 13
+  gate = 0.97 - frac(t / 4)
+  gain = 0.083
+  pan = 0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 4) - 13
+  gate = 0.97 - frac(t / 4)
+  gain = 0.076
+  pan = 0
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad4 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 6) - 13
+  gate = 0.97 - frac(t / 4)
+  gain = 0.069
+  pan = 0.45
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = h(R(j)) - 37 + 12 mod(floor(2t), 2)
+  gate = lay(0111)(0.8 - frac(2t))
+  gain = 0.27
+  attack = 3
+  decay = 250
+  sustain = 0.6
+}
+
+drum kick {
+  kind = dash
+  trigger = lay(0110)((sq(n / 16) + sq(n / 4 + 0.25) == 0)(0.5 - f))
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.5
+}
+
+drum clap {
+  kind = dash
+  trigger = lay(0110)((mod(floor(t), 2) == 1)(0.5 - b))
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+drum hat {
+  kind = dash
+  trigger = lay(0111)(0.5 - f)
+  amp = (1 + sq(n / 4) + sq(n / 16 + 0.5)) / 3
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 1.5
+  pan = 0.3
+}

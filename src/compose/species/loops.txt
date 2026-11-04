@@ -1,0 +1,371 @@
+# SPECIES: LOOPS. Incommensurable loops in 19-tone equal temperament (src/compose/book.rs).
+#
+# Eno's trick from Music for Airports: each voice is a figure on its own loop, 5, 7, 11, 13, 17, 19, 23 or 29 beats
+# long, so the loops drift against each other and rarely realign (5, 7, 11 and 13 together only every 5005 beats). The
+# loops run on the stream's clock w = t + 32 S (S is the stage counter), so they carry on across every seam instead of
+# restarting. There is no bar and no meter: the music is the phase between the loops. The tuning is 19-tone equal
+# temperament, e19(k) = Ek + 12k/19 (its thirds are purer than 12-tone's), through a diatonic mode of 19 Gm(d) whose
+# steps are stored two digits each. Timbres are sines and soft bells, long attacks, a lot of air. Sources: B. Eno,
+# Music for Airports (1978) and his 1996 talk on generative music; on 19-TET, J. Yasser (1932) and W. Sethares.
+
+== species
+name loops
+title incommensurable loops in 19-tone equal temperament: no bar, only phase
+tuning 19-tone equal temperament, e19(k) = Ek + 12k/19, through a 19-tone diatonic mode
+meter none: loops of 5, 7, 11, 13, 17, 19, 23 and 29 beats on the stream's own clock
+generator incommensurable loops (polymeter), realigning only at their least common multiple
+form a single evolving texture: layers drift in and out, nothing returns on the bar
+timbre sines and soft bells
+bpm 60 72
+weight 1
+explore yes
+open pads | counter+perc | bass+arp | lead | pads+counter
+
+== helpers
+lp(L, a, b) = (frac(w / L) >= a / L)(frac(w / L) < b / L)
+el(L) = floor(w / L)
+
+== frame
+S = 0
+w = t + 32 S
+e19(k) = Ek + 12 k / 19
+Gm(d) = 19 floor(d / 7) + mod(floor(Gn / 100^mod(d, 7)), 100)
+
+# ================================================================================================= modes (the progression slot)
+
+== loops/prog.major19 | progression | energy 2 | density 2 | mood bright float
+# the 19-tone major: steps 0 3 6 8 11 14 17 of 19, read two digits at a time from Gn
+Gn = 17141108060300
+Ek = -9
+
+== loops/prog.minor19 | progression | energy 1 | density 1 | mood dark float
+# the 19-tone minor: steps 0 3 5 8 11 13 16, a third a little sweeter than 12-tone's
+Gn = 16131108050300
+Ek = -12
+
+== loops/prog.lydian19 | progression | energy 2 | density 1 | mood bright calm
+# the 19-tone Lydian, a step higher: 0 3 6 9 11 14 17, the raised fourth floating
+Gn = 17141109060300
+Ek = -7
+
+# ================================================================================================= the loops
+
+== loops/lead.eleven | lead | energy 2 | density 2 | mood calm wander
+# a loop of 11 beats: three notes, each a beat, then silence; every time round the figure starts a degree higher, for five times round
+Eh(c, m) = Gm(7 + mod(c + m, 5) + m)
+Ea = e19(Eh(el(11), min(floor(11 frac(w / 11)), 2)))
+
+voice lead {
+  wave = additive
+  partials = 0, -18, -26, -34
+  rolloff = 660
+  pitch = Ea
+  gate = lp(11, 0, 3.2) (0.85 - frac(w))
+  gain = 0.2
+  pan = 0.15
+  attack = 60
+  decay = 900
+  sustain = 0.4
+  release = 900
+  reverb = 0.6
+  delay = 0.3
+}
+
+== loops/lead.voice | lead | energy 1 | density 1 | mood voice longing | glide
+# a voice on a loop of 23 beats: a long tone that sighs down a step and then another, sliding, its vibrato arriving late
+Ea = e19(Gm(10) + (Gm(9) - Gm(10)) smooth((frac(w / 23) - 0.16) / 0.04) + (Gm(8) - Gm(9)) smooth((frac(w / 23) - 0.28) / 0.04))
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -24, -32
+  rolloff = 660
+  pitch = Ea + vibrato(note_age, 0.8, 1.2, 0.2, 5)
+  gate = lp(23, 0, 9)
+  gain = 0.2
+  pan = 0.05
+  attack = 600
+  decay = 2000
+  sustain = 0.6
+  release = 1500
+  reverb = 0.6
+  delay = 0.25
+}
+
+== loops/lead.nine | lead | energy 3 | density 3 | mood bright wander
+# a loop of 4.5 beats (nine half beats): a five-note figure climbing in half beats, each time round from the next degree of a seven-step cycle
+En = e19(Gm(6 + mod(el(4.5), 7) + min(floor(2 frac(w / 4.5) * 4.5), 4)))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = En
+  gate = lp(4.5, 0, 2.5) (0.5 - frac(2w))
+  gain = 0.16
+  pan = 0.15
+  attack = 4
+  decay = 500
+  sustain = 0.2
+  release = 500
+  reverb = 0.55
+  delay = 0.3
+}
+
+== loops/arp.five | arp | energy 2 | density 2 | mood bright calm
+# a loop of 5 beats: four bells climbing the mode in half beats, from the degree that the loop's count names
+Eb = e19(Gm(4 + mod(el(5), 3) + floor(2 frac(w / 5) * 5)))
+
+voice arp {
+  wave = additive
+  partials = 0, -22, -9, -28, -16
+  rolloff = 660
+  pitch = Eb
+  gate = lp(5, 0, 2) (0.5 - frac(2w))
+  gain = 0.1
+  pan = -0.25
+  attack = 3
+  decay = 700
+  sustain = 0.05
+  release = 700
+  reverb = 0.6
+  delay = 0.3
+}
+
+== loops/counter.seven | counter | energy 1 | density 1 | mood calm float
+# a loop of 7 beats: one long bell, the fifth degree, then the sixth every other time round
+Ec = e19(Gm(4 + mod(el(7), 2)))
+
+voice counter {
+  wave = additive
+  partials = 0, -20, -12, -30
+  rolloff = 660
+  pitch = Ec
+  gate = lp(7, 0, 2.5)
+  gain = 0.12
+  pan = -0.4
+  attack = 30
+  decay = 1500
+  sustain = 0.2
+  release = 1500
+  reverb = 0.6
+}
+
+== loops/counter.thirteen | counter | energy 2 | density 2 | mood wander float
+# a loop of 13 beats: two notes falling a third, the second answering the first a beat and a half later
+Ec = e19(Gm(9 - 2 (frac(w / 13) >= 1.5 / 13)))
+
+voice counter {
+  wave = additive
+  partials = 0, -16, -26
+  rolloff = 660
+  pitch = Ec
+  gate = (lp(13, 0, 1.2) + lp(13, 1.5, 3.5))
+  gain = 0.12
+  pan = -0.35
+  attack = 40
+  decay = 1200
+  sustain = 0.3
+  release = 1200
+  reverb = 0.6
+}
+
+== loops/bass.thirteen | bass | energy 1 | density 1 | mood calm dark
+# a loop of 13 beats: the root, then the fifth a beat and a half later, held long
+Ed = e19(Gm(4 (frac(w / 13) >= 1.5 / 13))) - 24
+
+voice bass {
+  wave = additive
+  partials = 0, -8, -20, -26
+  rolloff = 660
+  pitch = Ed
+  gate = (lp(13, 0, 1.3) + lp(13, 1.5, 6))
+  gain = 0.22
+  attack = 200
+  decay = 2000
+  sustain = 0.6
+  release = 1200
+}
+
+== loops/bass.seventeen | bass | energy 2 | density 2 | mood wander dark | glide
+# a loop of 17 beats: a slow line falling root, seventh, sixth, fifth, each a beat and a half, sliding between them
+Ef(m) = Gm(7 - m)
+Ed = e19(Ef(min(floor(17 frac(w / 17) / 1.5), 3))) - 36
+
+voice bass {
+  wave = additive
+  partials = 0, -8, -20, -26
+  rolloff = 660
+  pitch = Ed
+  gate = lp(17, 0, 6)
+  gain = 0.22
+  attack = 150
+  decay = 2000
+  sustain = 0.7
+  release = 1200
+}
+
+== loops/pads.drift | pads | energy 1 | density 1 | mood float calm
+# three tones each on its own loop of 19, 23 and 29 beats, swelling in and out of each other: the chord is whatever overlaps
+Ep(m) = e19(Gm(2m)) - 12
+
+voice pad1 {
+  wave = additive
+  partials = 0, -14, -22, -30
+  rolloff = 660
+  pitch = Ep(0)
+  gate = lp(19, 0, 12)
+  amp = sin(pi min(19 frac(w / 19) / 12, 1))
+  gain = 0.1
+  pan = -0.3
+  attack = 1500
+  release = 2500
+  reverb = 0.6
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -14, -22, -30
+  rolloff = 660
+  pitch = Ep(1)
+  gate = lp(23, 4, 16)
+  amp = sin(pi clamp((23 frac(w / 23) - 4) / 12, 0, 1))
+  gain = 0.095
+  pan = 0.3
+  attack = 1500
+  release = 2500
+  reverb = 0.6
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -14, -22, -30
+  rolloff = 660
+  pitch = Ep(2)
+  gate = lp(29, 9, 23)
+  amp = sin(pi clamp((29 frac(w / 29) - 9) / 14, 0, 1))
+  gain = 0.09
+  pan = 0
+  attack = 1500
+  release = 2500
+  reverb = 0.6
+}
+
+== loops/pads.cluster | pads | energy 2 | density 2 | mood strange float
+# a three-tone cluster of adjacent degrees, each tone on a loop of 6, 8 and 10 beats: a shimmering chord that never strikes at once
+Ep(m) = e19(Gm(3 + m)) - 12
+
+voice pad1 {
+  wave = additive
+  partials = 0, -14, -22
+  rolloff = 660
+  pitch = Ep(0)
+  gate = lp(6, 0, 4)
+  gain = 0.08
+  pan = -0.3
+  attack = 800
+  release = 1500
+  reverb = 0.6
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -14, -22
+  rolloff = 660
+  pitch = Ep(1)
+  gate = lp(8, 1, 6)
+  gain = 0.075
+  pan = 0.3
+  attack = 800
+  release = 1500
+  reverb = 0.6
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -14, -22
+  rolloff = 660
+  pitch = Ep(2)
+  gate = lp(10, 2, 8)
+  gain = 0.07
+  pan = 0
+  attack = 800
+  release = 1500
+  reverb = 0.6
+}
+
+== loops/kick.three | kick | energy 2 | density 1 | mood calm
+# a heartbeat on a loop of 3 beats, so it slides against everything else
+Ey = lp(3, 0, 0.5)
+
+drum kick {
+  kind = dash
+  trigger = Ey
+  from = 260
+  to = 48
+  dash = 30
+  hold = 50
+  decay = 140
+  length = 500
+  partials = 0, -24, -14
+  rolloff = 660
+  gain = 0.6
+}
+
+== loops/hat.drizzle | hat | energy 2 | density 2 | mood calm
+# glass ticks on a loop of 2.5 beats, two quick and one long
+Ez = (lp(2.5, 0, 0.2) + lp(2.5, 0.5, 0.7) + lp(2.5, 1.5, 1.7))
+
+drum hat {
+  kind = dash
+  trigger = Ez
+  from = 6400
+  to = 5200
+  dash = 6
+  hold = 6
+  decay = 30
+  length = 140
+  partials = 0, -14
+  rolloff = 660
+  gain = 2.2
+  pan = 0.35
+  reverb = 0.5
+}
+
+== loops/perc.nine | perc | energy 1 | density 1 | mood strange calm
+# a woodblock on a loop of 9 beats, twice, a beat apart
+Eq = (lp(9, 0, 0.3) + lp(9, 1, 1.3))
+
+drum perc {
+  kind = dash
+  trigger = Eq
+  from = 1300
+  to = 1000
+  dash = 4
+  hold = 3
+  decay = 40
+  length = 140
+  partials = 0, -12, -20
+  rolloff = 660
+  gain = 0.45
+  pan = -0.3
+  reverb = 0.5
+}
+
+# ================================================================================================= seams
+
+== loops/seam.swell | seam | energy 1 | density 1 | mood into-strip into-intro into-return into-peak
+# the root and fifth swelling in over the last four beats, as the cube of the time
+sweep = e19(Gm(4))
+
+voice rise {
+  wave = additive
+  partials = 0, -12, -20
+  rolloff = 660
+  pitch = sweep
+  gate = t >= 28
+  amp = ((clamp(t, 28, 32) - 28) / 4)^3
+  gain = 0.12
+  attack = 50
+  release = 600
+  reverb = 0.6
+}

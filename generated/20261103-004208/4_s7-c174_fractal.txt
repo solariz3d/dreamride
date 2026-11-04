@@ -1,0 +1,185 @@
+# Composed by luminesce-compose, seed 7 candidate 174: a fractal song, grown from one generator through a scale lens.
+#
+# T(u) sums 5 tents at halving sizes, each 0.6 the height of the last (the Takagi-Landsberg curve), so every stretch
+# looks like the whole. The chord roots are T across the whole song, one sample a bar, times 8. The melody adds T at 3
+# time scales (32, 16, 2 lead steps), so each short figure has the shape of the longer ones. The lens h is the Aeolian
+# mode throughout. The lead is h(M) on every eighth, plucked, sounding on a Euclidean E(4, 8), gliding into the next
+# note. A harmony doubles the lead a diatonic third above. 4 pads stack thirds on the root, struck each bar. A contour
+# voice draws the generator across the whole song, held on scale tones by the glide lens g. The bass jumps octaves on
+# the root in eighths. The kick is on every beat. The clap is a pitch line dashing down on 2 and 4. The hats are
+# eighths, their loudness read from the generator. Form: build, break, return: the drums and bass drop out for section
+# 3.
+# 9 definitions and 6 time names.
+
+bpm 99
+beats 64
+loop 1
+reverb_size 0.75
+reverb_predelay 20
+delay_beats 0.75
+delay_feedback 0.35
+warmth 0.2
+
+tri(v) = abs(v - floor(v + 0.5))
+T(u) = tri(u) + 0.6 tri(2u) + 0.36 tri(4u) + 0.216 tri(8u) + 0.1296 tri(16u)
+h(d) = floor((12d + 2) / 7)
+g(u) = h(floor(u)) + (h(floor(u) + 1) - h(floor(u))) smooth((frac(u) - 0.7) / 0.3)
+R(i) = floor(8 T(i / 16))
+M(k) = R(floor(k / 8)) + floor(5 T(k / 32) + 5 T(k / 16) + 4 T(k / 2))
+lead(k) = h(M(k)) - 12
+lay(N) = mod(floor(N / 10^(3 - s)), 10)
+on(k) = mod(4 mod(k, 8), 8) < 4
+n = floor(4t)
+e = floor(2t)
+u = frac(2t)
+b = frac(t)
+j = floor(t / 4)
+s = floor(t / 16)
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = lead(e) + (lead(e + 1) - lead(e)) smooth((u - 0.75) / 0.25)
+  gate = lay(0111)on(e)(0.7 - u)
+  gain = 0.15
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+voice harmony {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = h(M(e) + 2) - 12 + (h(M(e + 1) + 2) - h(M(e) + 2)) smooth((u - 0.75) / 0.25)
+  gate = lay(0001)on(e)(0.7 - u)
+  gain = 0.0675
+  pan = -0.25
+  attack = 8
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.35
+}
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j)) - 12
+  gate = 0.97 - frac(t / 4)
+  gain = 0.09
+  pan = -0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 2) - 12
+  gate = 0.97 - frac(t / 4)
+  gain = 0.083
+  pan = 0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 4) - 12
+  gate = 0.97 - frac(t / 4)
+  gain = 0.076
+  pan = 0
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad4 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 6) - 12
+  gate = 0.97 - frac(t / 4)
+  gain = 0.069
+  pan = 0.45
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice contour {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12
+  rolloff = 660
+  pitch = g(10 T(t / 64)) - 2
+  gate = 1
+  gain = 0.05
+  pan = -0.4
+  attack = 2000
+  reverb = 0.6
+}
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = h(R(j)) - 36 + 12 mod(floor(2t), 2)
+  gate = lay(1101)(0.8 - frac(2t))
+  gain = 0.27
+  attack = 3
+  decay = 250
+  sustain = 0.6
+}
+
+drum kick {
+  kind = dash
+  trigger = lay(0101)(0.5 - b)
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.5
+}
+
+voice clap {
+  wave = additive
+  partials = 0, -6, -9, -12
+  rolloff = 660
+  pitch = 24 - 60 b
+  gate = lay(0101)((mod(floor(t), 2) == 1)(b < 0.09))
+  gain = 0.6
+  attack = 1
+  release = 20
+  reverb = 0.3
+}
+
+drum hat {
+  kind = dash
+  trigger = lay(1101)(0.5 - frac(2t))
+  amp = 2 T(n / 8)
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 1.5
+  pan = 0.3
+}

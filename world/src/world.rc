@@ -1,0 +1,2 @@
+// The icon: the window, the taskbar and the desktop shortcut show it (tools\make_icon.ps1 draws it).
+1 ICON "../assets/dreamride.ico"

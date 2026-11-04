@@ -1,0 +1,1196 @@
+# THE MOVE BOOK: hand-written, graph-native modules the stream arranges (src/compose/book.rs).
+#
+# Written by judgment on 2026-11-03, after listening found stream v2's way of changing intelligent but its content
+# flat, and a saved stretch was liked for a simple bass under a lead that wanders in an interesting way (a blancmange curve read at three time scales, gliding between eighths). The brain
+# writes the material here; the stream's arc planner only chooses and arranges it.
+#
+# Format. A module starts with `== id | slot | energy E | density D | mood words | glide` (glide only on modules whose
+# line bends or glides continuously), then one `#` line saying the shape, then its definitions and its voice blocks in
+# the song language. Every definition a module writes is a CONSTANT reading t (or a function of a step index); the voice
+# blocks only read them, so the equation panel shows the whole shape. Energy and density run 1 (space) to 3 (full).
+#
+# The contract that lets any module sit on any progression (since 2026-11-03, "harmony is written, never generated"):
+#   - the progression is one of the written ones in `harmony.txt` (src/compose/harmony.rs): it writes `c` (the melody's
+#     mode for the lens `h`) and four digit tables, one digit a half bar; the stream writes the key `K` once a song;
+#   - every tonal module reads the chord of half bar i = floor(t / 2): `Hr(i)` the bass note, `Hv(m, i)` the pads' voice
+#     m as voice-led, `Hc(m, i)` chord tone m up a ladder from the bass, `sc(x, i)` the chord tone nearest x;
+#   - melodic lines live in scale degrees through `h` and are pulled to the nearest chord tone on the strong beats
+#     (beats 1 and 3) by `hs(d, k, p)`, so they may wander freely in between (the corpus: 72-75% of beat notes are chord
+#     tones); `lb(i)` is the bass note folded into the low octave, `l5(i)` the chord tone nearest a fifth above it.
+# Names: a module's own names begin with its slot's letter (L lead, U counter, A arp, B bass, V pads, kk kick, hh hat,
+# cp clap, pc perc, roll/sweep seams); the helpers below are shared and identical everywhere.
+
+== species
+name lens
+title the move book: 12-tone modes through the scale lens h(d), city pop made of graphs
+tuning 12-tone modes through the lens h(d) = floor((12d + c) / 7)
+meter 4/4, eighths and sixteenths
+generator fractal sums (the blancmange), digit integers, bits, Fibonacci, Lissajous
+harmony yes
+form loop arcs
+timbre the pluck, graph-instrument pads, the 808 bass, dash drums
+bpm 92 106
+weight 2
+open bass+hat | pads+perc | lead | kick+bass | arp+counter | pads+lead | bass+clap | counter+hat | kick+arp
+
+== helpers
+tri(v) = abs(v - floor(v + 0.5))
+sq(v) = floor(2 frac(v))
+T(u) = tri(u) + 0.5 tri(2u) + 0.25 tri(4u) + 0.125 tri(8u) + 0.0625 tri(16u)
+bit(x, k) = mod(floor(x / 2^mod(k, 16)), 2)
+gl(x, y, u, w) = x + (y - x) smooth((u - 1 + w) / w)
+Fb(k) = floor(1.618033988749895^k / 2.23606797749979 + 0.5)
+lo(p) = mod(p + 4, 12) - 40
+lb(i) = lo(Hr(i))
+l5(i) = sc(lo(Hr(i)) + 7, i)
+
+# ================================================================================================= progressions
+# The progression slot holds the written progressions of harmony.txt (src/compose/harmony.rs adds them as modules).
+
+# ================================================================================================= leads
+
+== lead.blancmange | lead | energy 2 | density 2 | mood wander warm | glide
+# the saved wanderer: a blancmange curve read at the stage, the phrase, the bar and the half bar, on eighths, gliding the last 40% of each step
+Lm(k) = hs(floor(1 + 3 T(k / 64) + 4 T(k / 16) + 3 T(k / 8) + 2 T(k / 4)), k, 4)
+L = gl(Lm(floor(2t)), Lm(floor(2t) + 1), frac(2t), 0.4)
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 16) < 0.96
+  gain = 0.17
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+== lead.blancmange_slow | lead | energy 1 | density 1 | mood wander calm | glide
+# the blancmange curve slowed to quarter notes and shifted a quarter cycle, each note gliding over the last 60% of the beat
+Lm(k) = hs(floor(1 + 4 T(k / 32) + 5 T(k / 8 + 0.25) + 3 T(k / 4 + 0.5)), k, 2)
+L = gl(Lm(floor(t)), Lm(floor(t) + 1), frac(t), 0.6)
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9, -22.9, -28
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 8) < 0.94
+  gain = 0.17
+  pan = 0.1
+  attack = 30
+  decay = 500
+  sustain = 0.6
+  release = 300
+  reverb = 0.4
+  delay = 0.2
+}
+
+== lead.blancmange_triplet | lead | energy 2 | density 2 | mood wander float | glide
+# the blancmange curve on triplet eighths, three to a beat against the four of the bar, gliding the last 30% of each
+Lm(k) = hs(floor(1 + 3 T(k / 96) + 4 T(k / 24) + 3 T(k / 12 + 0.5) + 2 T(k / 6)), k, 6)
+L = gl(Lm(floor(3t)), Lm(floor(3t) + 1), frac(3t), 0.3)
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 8) < 0.95
+  gain = 0.16
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+== lead.takagi_bits | lead | energy 2 | density 2 | mood citypop groove
+# the blancmange curve stepped, without glide, plucked where the bits of 46418 are set: a syncopated two-bar rhythm
+Lm(k) = hs(floor(1 + 3 T(k / 64) + 4 T(k / 16 + 0.5) + 4 T(k / 8)), k, 4)
+L = Lm(floor(2t))
+Lg = bit(46418, floor(2t)) (0.85 - frac(2t))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = Lg
+  gain = 0.17
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.45
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+== lead.lissajous | lead | energy 2 | density 2 | mood float bright | glide
+# a Lissajous pair, sin 3:2 cos, summed and read on eighths, so the line swells where they agree and flattens where they cancel; long glides
+Lm(k) = hs(floor(6 + 2.4 sin(3 tau k / 32) + 1.8 cos(tau k / 16) + 0.5), k, 4)
+L = gl(Lm(floor(2t)), Lm(floor(2t) + 1), frac(2t), 0.5)
+
+voice lead {
+  wave = additive
+  partials = 0, -10.8, -17.2, -21.7, -25.2, -28, -30.4, -32.5
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 8) < 0.96
+  gain = 0.2
+  pan = 0.1
+  attack = 20
+  decay = 400
+  sustain = 0.6
+  release = 200
+  reverb = 0.35
+  delay = 0.3
+}
+
+== lead.weierstrass_bend | lead | energy 2 | density 2 | mood wander strange | glide
+# three cosines of periods 13, 5 and 3 beats (a Weierstrass-like sum) on quarters, and between beats the pitch bends along a slow sine that returns to the note at every beat
+Lm(k) = hs(floor(6 + 2 cos(tau k / 13) + 1.5 cos(tau k / 5) + cos(tau k / 3)), k, 2)
+L = gl(Lm(floor(t)), Lm(floor(t) + 1), frac(t), 0.35) + 1.2 sin(pi frac(t)) sin(3 tau t / 8)
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9, -22.9, -28
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 8) < 0.95
+  gain = 0.17
+  pan = 0.1
+  attack = 15
+  decay = 400
+  sustain = 0.6
+  release = 250
+  reverb = 0.35
+  delay = 0.25
+}
+
+== lead.sigh | lead | energy 1 | density 1 | mood voice longing | glide
+# a voice: a slow falling curve on quarters, pulled to the chord on 1 and 3 and sighing a step down on 4, each note sliding into the next over 45% of the beat, the vibrato arriving late
+Lm(k) = hs(floor(8 - 4 frac(k / 8) + 1.5 cos(tau k / 32)) - (mod(k, 4) == 3), k, 2)
+L = gl(Lm(floor(t)), Lm(floor(t) + 1), frac(t), 0.45) + 0.3 smooth(2 frac(t / 2) - 0.8) sin(3 tau t)
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9, -22.9, -28
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 8) < 0.97
+  gain = 0.18
+  pan = 0.05
+  attack = 60
+  decay = 600
+  sustain = 0.7
+  release = 400
+  reverb = 0.45
+  delay = 0.2
+}
+
+== lead.binary | lead | energy 2 | density 2 | mood citypop strange
+# binary counting: the degree is two bits of 27306 plus twice a bit of 13107 read a little later, a quarter note each, plucked
+Lm(k) = hs(4 + 2 bit(27306, k) + 2 bit(13107, k + 3) - bit(3855, k), k, 2)
+L = Lm(floor(t))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = 0.8 - frac(t)
+  gain = 0.17
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.5
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+== lead.comet | lead | energy 2 | density 1 | mood strange falling | glide
+# comets: every two beats a note strikes a chord tone and falls away by an exponential, three semitones in 2^(-6x), from a blancmange curve
+Lm(k) = hs(floor(3 + 4 T(k / 8) + 3 T(k / 3)), k, 1)
+L = Lm(floor(t / 2)) - 3 + 3 * 2^(-6 frac(t / 2))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = 0.85 - frac(t / 2)
+  gain = 0.18
+  pan = 0.1
+  attack = 5
+  decay = 500
+  sustain = 0.4
+  release = 250
+  reverb = 0.35
+  delay = 0.3
+}
+
+== lead.spiral | lead | energy 3 | density 3 | mood driving bright
+# a staircase climbing every six eighths against the eight of the bar (three against four), its floor rising and falling on a slow triangle
+Lm(k) = hs(2 + floor(6 frac(k / 6)) + floor(5 tri(k / 32)), k, 4)
+L = Lm(floor(2t))
+Lg = (mod(floor(2t), 6) != 5)(0.7 - frac(2t))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = Lg
+  gain = 0.16
+  pan = 0.1
+  attack = 4
+  decay = 250
+  sustain = 0.4
+  release = 120
+  reverb = 0.3
+  delay = 0.25
+}
+
+== lead.lorenz | lead | energy 2 | density 2 | mood float strange | glide
+# three sines of incommensurate periods 7, 11 and 4.5 beats (a Lorenz-like drift) read on quarters and glided over 70% of each beat, so it is mostly curve
+Lm(k) = hs(floor(6 + 1.6 sin(tau k / 7) + 1.6 sin(tau k / 11 + 1) + 1.2 sin(tau k / 4.5)), k, 2)
+L = gl(Lm(floor(t)), Lm(floor(t) + 1), frac(t), 0.7)
+
+voice lead {
+  wave = additive
+  partials = 0, -10.8, -17.2, -21.7, -25.2, -28, -30.4, -32.5
+  rolloff = 660
+  pitch = L
+  gate = frac(t / 8) < 0.96
+  gain = 0.2
+  pan = 0.1
+  attack = 20
+  decay = 400
+  sustain = 0.65
+  release = 250
+  reverb = 0.4
+  delay = 0.3
+}
+
+== lead.pisano | lead | energy 3 | density 2 | mood driving groove | glide
+# the Fibonacci numbers mod 7, which repeat every 16 (the Pisano period), on eighths with short scoops, plucked in pairs
+Lm(k) = hs(mod(Fb(mod(k + 1, 16)), 7) + 1 + floor(3 tri(k / 64)), k, 4)
+L = gl(Lm(floor(2t)), Lm(floor(2t) + 1), frac(2t), 0.25)
+Lg = (mod(floor(2t), 4) != 3)(0.9 - frac(t))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = L
+  gate = Lg
+  gain = 0.16
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.5
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+# ================================================================================================= counter-lines
+
+== counter.long_cos | counter | energy 1 | density 1 | mood calm warm | glide
+# a slow second line: half notes on a cosine climbing the chord's voicing (a guide-tone line), leaning a whole step up on the weak beat of each bar's first half (the bits of 21845), gliding over the last quarter
+Um(k) = Hc(1 + floor(1.5 + 1.5 cos(tau k / 16)), k)
+U = gl(Um(floor(t / 2)), Um(floor(t / 2) + 1), frac(t / 2), 0.25) + 2 bit(21845, floor(t / 2)) (frac(t / 2) >= 0.5)
+
+voice counter {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15
+  rolloff = 660
+  pitch = U
+  gate = frac(t / 8) < 0.97
+  gain = 0.09
+  pan = -0.35
+  attack = 80
+  decay = 600
+  sustain = 0.7
+  release = 400
+  reverb = 0.45
+}
+
+== counter.bell | counter | energy 1 | density 1 | mood bright float
+# glass bells: the chord's voicing two octaves up, a tone a beat cycling by threes on Euclid's five in sixteen beats (the bits of 9289), a whole step above on the off-beats where the bits of 2184 are set
+Um(k) = Hc(9 + mod(k, 3), floor(k / 2)) + 2 bit(2184, k) (mod(k, 2) == 1)
+U = Um(floor(t))
+
+voice counter {
+  wave = additive
+  partials = 0, -10.8, -17.2, -21.7, -25.2, -28, -30.4, -32.5
+  rolloff = 660
+  pitch = U
+  gate = bit(9289, floor(t)) (0.6 - frac(t))
+  gain = 0.1
+  pan = -0.4
+  attack = 2
+  decay = 700
+  sustain = 0.15
+  release = 600
+  reverb = 0.5
+  delay = 0.35
+}
+
+== counter.swell | counter | energy 1 | density 1 | mood voice longing | glide
+# a held chord tone that swells and fades over each bar as sin(pi x), bending up two semitones on the last beat like a breath in
+Um(k) = Hc(2 + floor(2 tri(k / 4)), 2k)
+U = Um(j) + 2 smooth(4 frac(t / 4) - 2.6)
+Ua = 0.25 + 0.75 sin(pi frac(t / 4))
+
+voice counter {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1
+  rolloff = 660
+  pitch = U
+  gate = 0.98 - frac(t / 4)
+  amp = Ua
+  gain = 0.08
+  pan = -0.3
+  attack = 200
+  release = 500
+  reverb = 0.5
+}
+
+== counter.takagi_low | counter | energy 2 | density 2 | mood wander warm | glide
+# the blancmange read backwards (k runs down) on quarters an octave under the lead, gliding over half of each beat
+Um(k) = hs(floor(2 + 5 T(1 - k / 16) + 4 T(1 - k / 8)), k, 2)
+U = gl(Um(floor(t)), Um(floor(t) + 1), frac(t), 0.5) - 12
+
+voice counter {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15
+  rolloff = 660
+  pitch = U
+  gate = frac(t / 4) < 0.93
+  gain = 0.09
+  pan = -0.35
+  attack = 25
+  decay = 400
+  sustain = 0.6
+  release = 250
+  reverb = 0.4
+}
+
+# ================================================================================================= arpeggios
+
+== arp.updown | arp | energy 2 | density 3 | mood bright driving
+# a triangle wave up and down the chord's ladder (the bass's pitch class and the three voices, two octaves) on sixteenths
+A = Hc(floor(7.99 tri(t / 2)), floor(t / 2)) + 12
+
+voice arp {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1
+  rolloff = 660
+  pitch = A
+  gate = 0.55 - frac(4t)
+  gain = 0.06
+  pan = 0.35
+  attack = 2
+  decay = 120
+  sustain = 0.25
+  release = 80
+  reverb = 0.3
+  delay = 0.3
+}
+
+== arp.bits | arp | energy 2 | density 2 | mood citypop groove
+# the chord tone is two bits (of 41120 and 4626) read as a number, on the sixteenths where the bits of 46811 are set
+A = Hc(bit(41120, floor(4t)) + 2 bit(4626, floor(4t)), floor(t / 2)) + 12
+Ag = bit(46811, floor(4t)) (0.55 - frac(4t))
+
+voice arp {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1
+  rolloff = 660
+  pitch = A
+  gate = Ag
+  gain = 0.065
+  pan = 0.35
+  attack = 2
+  decay = 120
+  sustain = 0.25
+  release = 80
+  reverb = 0.3
+  delay = 0.3
+}
+
+== arp.spiral | arp | energy 3 | density 3 | mood driving bright
+# a sawtooth up the chord tones, two octaves a bar on eighths, then back to the root: a spiral that resets each bar
+A = Hc(floor(8 frac(t / 4)), floor(t / 2)) + 12
+
+voice arp {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = A
+  gate = 0.5 - frac(2t)
+  gain = 0.055
+  pan = 0.35
+  attack = 2
+  decay = 140
+  sustain = 0.2
+  release = 80
+  reverb = 0.35
+  delay = 0.35
+}
+
+== arp.pisano | arp | energy 2 | density 2 | mood strange groove
+# Fibonacci mod 3 picks the chord tone (period 8), on eighths, skipping where Fibonacci mod 4 is 0
+A = Hc(1 + mod(Fb(mod(floor(2t), 8)), 3), floor(t / 2)) + 12
+Ag = (mod(Fb(mod(floor(2t), 6)), 4) != 0)(0.55 - frac(2t))
+
+voice arp {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1
+  rolloff = 660
+  pitch = A
+  gate = Ag
+  gain = 0.065
+  pan = 0.35
+  attack = 2
+  decay = 140
+  sustain = 0.25
+  release = 80
+  reverb = 0.3
+  delay = 0.3
+}
+
+== arp.glide | arp | energy 1 | density 2 | mood float calm | glide
+# a legato arpeggio that never lets go: it slides up the chord's ladder, the bass's pitch class and the three voices, on eighths, gliding half of each
+A = gl(Hc(mod(floor(2t), 4), floor(t / 2)), Hc(mod(floor(2t) + 1, 4), floor(t / 2)), frac(2t), 0.5) + 12
+
+voice arp {
+  wave = additive
+  partials = 0, -10.8, -17.2, -21.7, -25.2, -28, -30.4, -32.5
+  rolloff = 660
+  pitch = A
+  gate = frac(t / 4) < 0.97
+  gain = 0.07
+  pan = 0.35
+  attack = 40
+  decay = 400
+  sustain = 0.6
+  release = 300
+  reverb = 0.4
+  delay = 0.3
+}
+
+# ================================================================================================= bass (lines, not a root on every beat)
+# 2026-11-03: basslines should be fluid and more complex, never the root on every beat. So each bass is a line: syncopated bit rhythms with rests and pushes, ghosts, octave jumps, approach notes into
+# each chord change, walking chord tones, and slides drawn as curves. Strong beats stay on the bar's chord tones.
+# `Bg` re-strikes a legato line: it dips to 0 only at the end of a step whose NEXT step is set in the pattern.
+# Register: `lb(i)` folds the half bar's bass note into one low octave (F1 to E2) and `l5(i)` is the chord tone nearest
+# a fifth above it, so a line keeps its shape while the progression moves, and never climbs out of the bass. A bass
+# plays the bass note the progression wrote, so a written inversion (I/3, V/3) is heard where it was meant.
+
+== bass.anticipate | bass | energy 1 | density 1 | mood calm warm
+# the bass note on 1, the fifth on 3, and the next chord's bass pushed early onto the and before it, held legato between (the bits of 37265 on eighths)
+B = if((mod(floor(2t), 8) >= 4)(mod(floor(2t), 8) < 7)(Hr(floor((t + 0.5) / 2)) == Hr(2j)), l5(floor((t + 0.5) / 2)), lb(floor((t + 0.5) / 2)))
+Bg = 1 - bit(37265, floor(2t) + 1) (frac(2t) > 0.85)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = Bg
+  gain = 0.16
+  attack = 6
+  decay = 600
+  sustain = 0.6
+  release = 120
+}
+
+== bass.breath | bass | energy 1 | density 1 | mood float calm | glide
+# half notes, the bass note then the fifth (or the next chord's bass), each sliding into the next along a smoothstep over the last 35% of the half bar: the line is a curve
+Bm(k) = if((mod(k, 2) == 1)(Hr(k) == Hr(k - 1)), l5(k), lb(k))
+B = gl(Bm(floor(t / 2)), Bm(floor(t / 2) + 1), frac(t / 2), 0.35)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = 0.98 - frac(t / 4)
+  gain = 0.16
+  attack = 10
+  decay = 900
+  sustain = 0.7
+  release = 200
+}
+
+== bass.slide808 | bass | energy 2 | density 2 | mood groove driving | glide
+# 808 portamento: eighths on a syncopated pattern (the bits of 60909), octaves and fifths on the off-beats, and a step from below into each new bar's chord, every move a glide
+Bm(k) = if(mod(k, 8) == 7, lb(floor(k / 4) + 1) - 1, if(bit(17476, k), l5(floor(k / 4)), lb(floor(k / 4))) + 12 bit(8738, k))
+B = gl(Bm(floor(2t)), Bm(floor(2t) + 1), frac(2t), 0.3)
+Bg = 1 - bit(60909, floor(2t) + 1) (frac(2t) > 0.8)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = Bg
+  gain = 0.16
+  attack = 4
+  decay = 400
+  sustain = 0.6
+  release = 100
+}
+
+== bass.walk | bass | energy 2 | density 2 | mood warm groove
+# a walk: the bass note, the third, the fifth on the beats (a new chord at the half bar takes its own bass note), then a half step below the next bar's bass on 4; a quiet ghost an octave up on the and of 2
+B = if(mod(floor(t), 4) == 3, lb(2j + 2) - 1, sc(lb(floor(t / 2)) + 3.5 mod(floor(t), 4) (Hr(floor(t / 2)) == Hr(2j)), floor(t / 2))) + 12 (frac(t) >= 0.5)
+Bg = (0.45 - frac(t)) + (mod(t, 4) >= 1.5)(mod(t, 4) < 1.7)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = Bg
+  amp = 1 - 0.6 (frac(t) >= 0.5)
+  gain = 0.16
+  attack = 4
+  decay = 300
+  sustain = 0.5
+  release = 80
+}
+
+== bass.wander | bass | energy 2 | density 1 | mood wander warm | glide
+# the saved wanderer, lower and slower: a blancmange curve on quarters pulled to the chord on 1 and 3, set on the bass note in the low octave, gliding 40% of each beat, resting where the bits of 57051 are clear
+Bm(k) = lb(floor(k / 2)) + hs(floor(1 + 3 T(k / 32) + 3 T(k / 8)), k, 2) - Hr(floor(k / 2))
+B = gl(Bm(floor(t)), Bm(floor(t) + 1), frac(t), 0.4)
+Bg = bit(57051, floor(t)) (0.95 - frac(t))
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = Bg
+  gain = 0.16
+  attack = 8
+  decay = 500
+  sustain = 0.65
+  release = 120
+}
+
+== bass.answer | bass | energy 3 | density 2 | mood groove driving
+# call and response with the kick: silent where a four-on-the-floor kick lands, answering on the off-beats with octaves, then a run up the chord tones into the next bar (the bits of 29764 on sixteenths)
+B = sc(lb(floor(t / 2)) + 3.5 (mod(floor(4t), 16) - 12)(mod(floor(4t), 16) >= 12), floor(t / 2)) + 12 (mod(floor(4t), 4) == 2)
+Bg = bit(29764, floor(4t)) (0.6 - frac(4t))
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = Bg
+  gain = 0.16
+  attack = 3
+  decay = 220
+  sustain = 0.5
+  release = 60
+}
+
+== bass.funk | bass | energy 3 | density 3 | mood citypop driving
+# sixteenth funk: the bits of 46774, octave jumps where the bits of 9362 are set, quiet ghosts off the eighths, and a half step from above into each bar's chord
+B = if(mod(floor(4t), 16) == 15, lb(2j + 2) + 1, lb(floor(t / 2)) + 12 bit(9362, floor(4t)))
+Bg = bit(46774, floor(4t)) (0.7 - frac(4t))
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = B
+  gate = Bg
+  amp = 1 - 0.55 (mod(floor(4t), 2) == 1)
+  gain = 0.16
+  attack = 3
+  decay = 200
+  sustain = 0.45
+  release = 50
+}
+
+# ================================================================================================= pads
+
+== pads.struck | pads | energy 2 | density 1 | mood warm calm
+# the progression's voicing as written for the pads (third, seventh, colour; each chord the nearest to the last), struck at each bar and sliding into the next chord over the last 8% of the half bar
+V(m) = gl(Hv(m, floor(t / 2)), Hv(m, floor(t / 2) + 1), frac(t / 2), 0.08)
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = V(0)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.09
+  pan = -0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = V(1)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.085
+  pan = 0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = V(2)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.08
+  pan = 0
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+== pads.swell | pads | energy 1 | density 1 | mood float longing | glide
+# the voicing held, swelling and fading as sin^2 over eight beats, gliding at each change
+V(m) = gl(Hv(m, floor(t / 2)), Hv(m, floor(t / 2) + 1), frac(t / 2), 0.08)
+Va = 0.35 + 0.65 sin(pi frac(t / 8)) sin(pi frac(t / 8))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1, -28.6, -30
+  rolloff = 660
+  pitch = V(0)
+  gate = 0.98 - frac(t / 4)
+  amp = Va
+  gain = 0.08
+  pan = -0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1, -28.6, -30
+  rolloff = 660
+  pitch = V(1)
+  gate = 0.98 - frac(t / 4)
+  amp = Va
+  gain = 0.09
+  pan = 0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3, -25.4, -27.1, -28.6, -30
+  rolloff = 660
+  pitch = V(2)
+  gate = 0.98 - frac(t / 4)
+  amp = Va
+  gain = 0.085
+  pan = 0
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+== pads.folded | pads | energy 1 | density 1 | mood warm float | glide
+# the voicing folded into one octave window, (z + 9) mod 12 - 9 (the reference's fold), so the chords move by small steps in close position, gliding at each change
+V(m, i) = K + mod(Hv(m, i) - K + 9, 12) - 21
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = gl(V(0, floor(t / 2)), V(0, floor(t / 2) + 1), frac(t / 2), 0.3)
+  gate = 0.99 - frac(t / 8)
+  gain = 0.09
+  pan = -0.3
+  attack = 200
+  release = 600
+  reverb = 0.45
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = gl(V(1, floor(t / 2)), V(1, floor(t / 2) + 1), frac(t / 2), 0.3)
+  gate = 0.99 - frac(t / 8)
+  gain = 0.085
+  pan = 0.3
+  attack = 200
+  release = 600
+  reverb = 0.45
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = gl(V(2, floor(t / 2)), V(2, floor(t / 2) + 1), frac(t / 2), 0.3)
+  gate = 0.99 - frac(t / 8)
+  gain = 0.08
+  pan = 0
+  attack = 200
+  release = 600
+  reverb = 0.45
+}
+
+== pads.stabs | pads | energy 3 | density 2 | mood citypop groove
+# short chord stabs on the off-beat eighths where the bits of 9362 are set, the voicing an octave up: city-pop comping
+V(m) = Hv(m, floor(t / 2)) + 12
+Vg = bit(9362, floor(2t)) (0.4 - frac(2t))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = V(0)
+  gate = Vg
+  gain = 0.06
+  pan = -0.3
+  attack = 3
+  decay = 180
+  sustain = 0.3
+  release = 120
+  reverb = 0.35
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = V(1)
+  gate = Vg
+  gain = 0.055
+  pan = 0.3
+  attack = 3
+  decay = 180
+  sustain = 0.3
+  release = 120
+  reverb = 0.35
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = V(2)
+  gate = Vg
+  gain = 0.05
+  pan = 0
+  attack = 3
+  decay = 180
+  sustain = 0.3
+  release = 120
+  reverb = 0.35
+}
+
+# ================================================================================================= drums (downward dashes)
+
+== kick.four | kick | energy 3 | density 2 | mood driving
+# a downward dash on every beat: 0.5 - frac(t)
+kk = 0.5 - frac(t)
+
+drum kick {
+  kind = dash
+  trigger = kk
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== kick.pickup | kick | energy 2 | density 2 | mood groove citypop
+# beat 1, the and of 2, beat 3, and a pickup into the second bar: the bits of 39193 on eighths
+kk = bit(39193, floor(2t)) (0.5 - frac(2t))
+
+drum kick {
+  kind = dash
+  trigger = kk
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== kick.halftime | kick | energy 1 | density 1 | mood calm dark
+# half time: beat 1 and the and of 3 (the bits of 8481 on eighths)
+kk = bit(8481, floor(2t)) (0.5 - frac(2t))
+
+drum kick {
+  kind = dash
+  trigger = kk
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== kick.euclid | kick | energy 2 | density 2 | mood strange groove
+# Euclid's five in sixteen, E(5, 16), the bits of 9289 on sixteenths
+kk = bit(9289, floor(4t)) (0.5 - frac(4t))
+
+drum kick {
+  kind = dash
+  trigger = kk
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== hat.takagi | hat | energy 2 | density 2 | mood groove
+# eighth-note hats whose loudness follows the blancmange curve over two bars
+hh = 0.5 - frac(2t)
+
+drum hat {
+  kind = dash
+  trigger = hh
+  amp = 0.35 + 0.65 T(t / 8)
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== hat.bits | hat | energy 3 | density 3 | mood driving
+# sixteenth hats where the bits of 56797 are set, the ones on the beat louder
+hh = bit(56797, floor(4t)) (0.5 - frac(4t))
+
+drum hat {
+  kind = dash
+  trigger = hh
+  amp = 0.55 + 0.45 (frac(t) < 0.1)
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== hat.offbeat | hat | energy 1 | density 1 | mood calm groove
+# one longer hat on every off-beat, (frac(t) >= 1/2)(3/4 - frac(t))
+hh = (frac(t) >= 0.5)(0.75 - frac(t))
+
+drum hat {
+  kind = dash
+  trigger = hh
+  from = 7600
+  to = 5000
+  dash = 8
+  hold = 10
+  decay = 40
+  length = 160
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.8
+  pan = 0.3
+}
+
+== clap.backbeat | clap | energy 2 | density 1 | mood groove
+# a downward dash on beats 2 and 4, the backbeat: (beat mod 2 == 1)(1/2 - frac(t))
+cp = (mod(floor(t), 2) == 1)(0.5 - frac(t))
+
+drum clap {
+  kind = dash
+  trigger = cp
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+== clap.ghost | clap | energy 3 | density 2 | mood citypop driving
+# 2 and 4 with a quiet ghost on the last sixteenth of the bar (the bits of 20496)
+cp = bit(20496, floor(4t)) (0.5 - frac(4t))
+
+drum clap {
+  kind = dash
+  trigger = cp
+  amp = 1 - 0.6 (mod(floor(4t), 16) == 14)
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+== perc.tom | perc | energy 2 | density 1 | mood groove strange
+# a low tom dash on Euclid's three in eight, E(3, 8), the bits of 18761 on eighths
+pc = bit(18761, floor(2t)) (0.5 - frac(2t))
+
+drum perc {
+  kind = dash
+  trigger = pc
+  from = 300
+  to = 120
+  dash = 15
+  hold = 10
+  decay = 70
+  length = 300
+  partials = 0, -10, -18, -22
+  rolloff = 660
+  gain = 0.3
+  pan = -0.2
+  reverb = 0.25
+}
+
+== perc.rim | perc | energy 2 | density 2 | mood strange driving
+# a short high rim on the sixteenths where the Fibonacci numbers are 0 mod 4 (period 6, against the bar's 16)
+pc = (mod(Fb(mod(floor(4t), 6)), 4) == 0)(0.5 - frac(4t))
+
+drum perc {
+  kind = dash
+  trigger = pc
+  from = 1800
+  to = 1300
+  dash = 4
+  hold = 3
+  decay = 25
+  length = 100
+  partials = 0, -12, -8, -20
+  rolloff = 660
+  gain = 0.6
+  pan = -0.25
+  reverb = 0.2
+}
+
+# ================================================================================================= seams (the last beats of a stage)
+
+== seam.roll | seam | energy 3 | density 3 | mood into-return
+# a sixteenth roll over the last two beats, growing louder: (t >= 30)(1/2 - frac(4t))
+roll = (t >= 30)(0.5 - frac(4t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.45 + 0.3 (t - 30)
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 60
+  length = 200
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}
+
+== seam.doubling | seam | energy 3 | density 3 | mood into-return into-peak
+# a roll that doubles every beat over the last four: eighths, sixteenths, then 32nds, 2^floor(t - 27) to a beat
+roll = (t >= 28)(0.5 - frac(t * 2^floor(t - 27)))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.3 + 0.18 (t - 28)
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 50
+  length = 160
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}
+
+== seam.riser | seam | energy 3 | density 2 | mood into-return into-peak
+# a rising curve: a parabola from a tenth below to an octave above A over the last four beats, swelling
+sweep = -10 + 22 ((clamp(t, 28, 32) - 28) / 4)^2
+
+voice rise {
+  wave = additive
+  partials = 0, -120, -21.9, -120, -32.2
+  rolloff = 660
+  pitch = sweep
+  gate = t >= 28
+  amp = (clamp(t, 28, 32) - 28) / 4
+  gain = 0.12
+  attack = 200
+  release = 300
+  reverb = 0.5
+}
+
+== seam.cascade | seam | energy 2 | density 3 | mood into-strip
+# a dash cascade: eight sixteenths over the last two beats, each a pitch dash falling 18 semitones and each starting three lower than the last
+sweep = 22 - 3 floor(4 (clamp(t, 30, 31.99) - 30)) - 18 frac(4 min(t, 31.99))
+
+voice rise {
+  wave = additive
+  partials = 0, -6, -9, -12
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 30)(0.6 - frac(4t))
+  gain = 0.12
+  attack = 1
+  decay = 90
+  sustain = 0
+  release = 20
+  reverb = 0.4
+}
+
+== seam.fall | seam | energy 1 | density 1 | mood into-strip into-intro
+# a long fall: a parabola dropping thirty semitones over the last three beats, the way a stage lets go
+sweep = 8 - 30 ((clamp(t, 29, 32) - 29) / 3)^2
+
+voice rise {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21
+  rolloff = 660
+  pitch = sweep
+  gate = t >= 29
+  amp = 1 - (clamp(t, 29, 32) - 29) / 4
+  gain = 0.1
+  attack = 30
+  release = 300
+  reverb = 0.5
+}
+
+== seam.swell | seam | energy 1 | density 1 | mood into-intro into-return
+# a reversed swell on the tonic (every progression starts home), rising as the cube of the last four beats
+sweep = Hr(0) - 12
+
+voice rise {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = sweep
+  gate = t >= 28
+  amp = ((clamp(t, 28, 32) - 28) / 4)^3
+  gain = 0.14
+  attack = 50
+  release = 150
+  reverb = 0.5
+}
+
+== seam.glissando | seam | energy 2 | density 3 | mood into-return into-intro
+# the last chord (the dominant) climbed on sixteenths over the last two beats, eight tones of its ladder, two octaves
+sweep = Hc(floor(4 (clamp(t, 30, 31.99) - 30)), 15) + 12
+
+voice rise {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 30)(0.7 - frac(4t))
+  gain = 0.09
+  attack = 2
+  decay = 120
+  sustain = 0.3
+  release = 60
+  reverb = 0.45
+  delay = 0.3
+}
+
+== seam.stutter | seam | energy 3 | density 2 | mood into-return into-peak
+# a stuttered last bar: dashes on the sixteenths where the bits of 46811 are set
+roll = (t >= 28) bit(46811, floor(4t)) (0.5 - frac(4t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.5 + 0.12 (t - 28)
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 60
+  length = 200
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}
+
+== seam.toms | seam | energy 2 | density 2 | mood into-strip into-peak
+# a tom run: the last beat's four sixteenths, each a pitch dash falling eight semitones, each starting four lower (frozen at the seam so a ringing tom never jumps)
+sweep = -14 - 4 floor(4 (clamp(t, 31, 31.99) - 31)) - 8 frac(4 min(t, 31.99))
+
+voice rise {
+  wave = additive
+  partials = 0, -10, -18, -22
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 31)(0.7 - frac(4t))
+  gain = 0.3
+  attack = 1
+  decay = 120
+  sustain = 0
+  release = 30
+  reverb = 0.3
+}

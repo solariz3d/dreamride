@@ -1,0 +1,460 @@
+# SPECIES: RATIOS. Just intonation in 3/4: the harmony is the ratios (src/compose/book.rs, docs/composer.md "Species").
+#
+# Every pitch is a whole-number ratio of the tonic, sounded through J(r) = Jz + 12 log2(r): the bar's fundamental is a
+# ratio Q(i) (numerator and denominator stored digit by digit), its chord is harmonics 4:5:6:7 of a fundamental two
+# octaves down (the 7th harmonic is the interval no piano has), or the undertone chord 1/4:1/5:1/6. Leads climb the
+# harmonic series of the bar's fundamental. The meter is 3/4: three pulses of 4/3 beat in each four-beat bar, so a
+# pulse is floor(3t/4) and an eighth floor(3t/2). Timbres are pure sines and glass bells (few partials), so the just
+# intervals beat against nothing. Sources: Partch (Genesis of a Music), Sethares (Tuning, Timbre, Spectrum, Scale).
+
+== species
+name ratios
+title just intonation in 3/4: every pitch a whole-number ratio, chords from the harmonic series
+tuning just intonation, J(r) = Jz + 12 log2(r)
+meter 3/4 (three pulses in each four-beat bar)
+generator the harmonic series of each bar's fundamental
+form loop arcs
+timbre pure sines and glass bells
+bpm 80 100
+weight 1
+explore yes
+open pads | bass+perc | lead | pads+kick | counter+hat | bass+lead
+
+== helpers
+dg(x, i) = mod(floor(x / 10^(7 - mod(i, 8))), 10)
+gz(a, b, u) = a + (b - a) smooth((u - 0.7) / 0.3)
+Q(i) = dg(Qn, i) / dg(Qd, i)
+
+== frame
+J(r) = Jz + 12 log2(r)
+
+# ================================================================================================= ratio progressions
+
+== ratios/prog.fifths | progression | energy 1 | density 1 | mood calm bright
+# the bar's fundamental as a ratio of the tonic, digit over digit: 1 1 3/2 3/2 4/3 4/3 3/2 1
+Jz = -21
+Qn = 11334431
+Qd = 11223321
+
+== ratios/prog.septimal | progression | energy 2 | density 2 | mood strange longing
+# 1 7/4 4/3 7/6 1 7/4 3/2 1: fundamentals on the seventh harmonic, the interval no piano has
+Jz = -21
+Qn = 17471731
+Qd = 14361421
+
+== ratios/prog.drift | progression | energy 2 | density 2 | mood float bright
+# 1 9/8 5/4 4/3 5/4 9/8 1 8/9: up the just scale and back, past the tonic to the step below
+Jz = -19
+Qn = 19545918
+Qd = 18434819
+
+== ratios/prog.minor | progression | energy 3 | density 2 | mood dark driving
+# 1 6/5 4/3 3/2 1 6/5 8/5 3/2: the just minor, every step a small ratio
+Jz = -22
+Qn = 16431683
+Qd = 15321552
+
+# ================================================================================================= leads
+
+== ratios/lead.alphorn | lead | energy 2 | density 2 | mood wander bright | glide
+# an alphorn: harmonics 6 to 16 of the bar's fundamental (11 and 13 sound between the keys), on eighths, chosen by two sines of periods 18 and 7, gliding the last 30% of each eighth
+Jh(k) = clamp(floor(11 + 3.5 sin(tau k / 18) + 2.5 sin(tau k / 7)), 6, 16)
+Jl = gz(J(Q(j) Jh(floor(1.5t)) / 2), J(Q(floor((t + 0.6667) / 4)) Jh(floor(1.5t) + 1) / 2), frac(1.5t))
+
+voice lead {
+  wave = additive
+  partials = 0, -14, -22, -30
+  rolloff = 660
+  pitch = Jl
+  gate = mod(floor(1.5t), 12) < 10
+  gain = 0.2
+  pan = 0.1
+  attack = 30
+  decay = 400
+  sustain = 0.7
+  release = 200
+  reverb = 0.4
+  delay = 0.2
+}
+
+== ratios/lead.overtones | lead | energy 1 | density 1 | mood voice calm | glide
+# a voice climbing the overtone scale and coming back down, harmonics 10 to 16, one a pulse: 16 - |k mod 12 - 6|, sliding into each, the vibrato arriving late
+Jh(k) = 16 - abs(mod(k, 12) - 6)
+Jl = gz(J(Q(j) Jh(floor(0.75t)) / 2), J(Q(floor((t + 1.3333) / 4)) Jh(floor(0.75t) + 1) / 2), frac(0.75t))
+
+voice lead {
+  wave = additive
+  partials = 0, -18, -26, -34
+  rolloff = 660
+  pitch = Jl + vibrato(note_age, 0.5, 0.6, 0.22, 5.2)
+  gate = frac(t / 16) < 0.92
+  gain = 0.2
+  pan = 0.05
+  attack = 80
+  decay = 600
+  sustain = 0.75
+  release = 400
+  reverb = 0.5
+  delay = 0.2
+}
+
+== ratios/lead.bells | lead | energy 3 | density 3 | mood bright driving
+# glass bells on the harmonic arpeggio: harmonics 8 10 12 14, then 12 14 16 18, struck twelve to a bar
+Jh(k) = 8 + 2 mod(k, 4) + 4 (mod(floor(k / 4), 3) == 1)
+Jl = J(Q(j) Jh(floor(3t)) / 2)
+
+voice lead {
+  wave = additive
+  partials = 0, -22, -9, -28, -16
+  rolloff = 660
+  pitch = Jl
+  gate = 0.55 - frac(3t)
+  gain = 0.16
+  pan = 0.15
+  attack = 2
+  decay = 260
+  sustain = 0.1
+  release = 200
+  reverb = 0.4
+  delay = 0.3
+}
+
+# ================================================================================================= counter-line
+
+== ratios/counter.seventh | counter | energy 1 | density 1 | mood strange longing
+# the seventh harmonic held against every chord, swelling each bar: J(7 Q / 2)
+Jc = J(7 Q(j) / 2)
+
+voice counter {
+  wave = additive
+  partials = 0, -20
+  rolloff = 660
+  pitch = Jc
+  gate = 0.9 - frac(t / 4)
+  amp = sin(pi frac(t / 4))
+  gain = 0.12
+  pan = -0.35
+  attack = 400
+  release = 600
+  reverb = 0.55
+}
+
+== ratios/counter.undertone | counter | energy 2 | density 2 | mood dark float
+# down the undertone series of the bar's fundamental on pulses: 8/4 8/5 8/6 8/7 times the root, a minor fall
+Jc = J(8 Q(j) / (4 + mod(floor(0.75t), 4)))
+
+voice counter {
+  wave = additive
+  partials = 0, -16, -24
+  rolloff = 660
+  pitch = Jc
+  gate = 0.8 - frac(0.75t)
+  gain = 0.12
+  pan = -0.3
+  attack = 20
+  decay = 500
+  sustain = 0.4
+  release = 300
+  reverb = 0.45
+}
+
+# ================================================================================================= basses
+
+== ratios/bass.pedal | bass | energy 1 | density 1 | mood calm
+# the fundamental an octave down, struck at each bar and held, the fifth (3/2) breathing in on the third pulse
+Jb = J(Q(j) / 2) + 12 log2(1.5) (mod(t, 4) >= 2.6667)
+
+voice bass {
+  wave = additive
+  partials = 0, -8, -20, -26
+  rolloff = 660
+  pitch = Jb
+  gate = 0.96 - frac(t / 4)
+  gain = 0.2
+  attack = 10
+  decay = 800
+  sustain = 0.7
+  release = 200
+}
+
+== ratios/bass.waltz | bass | energy 2 | density 2 | mood warm groove
+# oom-pah-pah in ratios: the fundamental, its octave and its octave-fifth on eighths 1, 3 and 5, then 15/16 of the next bar's root as the leading tone
+Jb = if(mod(floor(1.5t), 6) == 5, J(15 Q(j + 1) / 32), J(Q(j) (2 + mod(floor(1.5t), 6)) / 4))
+
+voice bass {
+  wave = additive
+  partials = 0, -8, -20, -26
+  rolloff = 660
+  pitch = Jb
+  gate = (mod(floor(1.5t), 6) != 1)(mod(floor(1.5t), 6) != 3)(0.75 - frac(1.5t))
+  gain = 0.2
+  attack = 5
+  decay = 300
+  sustain = 0.5
+  release = 80
+}
+
+== ratios/bass.slide | bass | energy 3 | density 2 | mood groove driving | glide
+# a sliding bass through the ratios 1, 3/2, 2 and 5/4 of the fundamental, one a pulse, gliding into each over the last 30%
+Jr(p) = mod(floor(2534 / 10^mod(p, 4)), 10) / 4
+Jb = gz(J(Q(j) Jr(floor(0.75t)) / 2), J(Q(floor((t + 1.3333) / 4)) Jr(floor(0.75t) + 1) / 2), frac(0.75t))
+
+voice bass {
+  wave = additive
+  partials = 0, -8, -20, -26
+  rolloff = 660
+  pitch = Jb
+  gate = 0.9 - frac(0.75t)
+  gain = 0.2
+  attack = 6
+  decay = 400
+  sustain = 0.6
+  release = 100
+}
+
+# ================================================================================================= pads
+
+== ratios/pads.otonal | pads | energy 2 | density 1 | mood warm bright
+# harmonics 5, 6 and 7 of the bar's fundamental two octaves down: the otonal chord 5:6:7, struck each bar
+Jp(m, i) = J(Q(i) (5 + m) / 4)
+
+voice pad1 {
+  wave = additive
+  partials = 0, -18, -30
+  rolloff = 660
+  pitch = Jp(0, j)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.1
+  pan = -0.3
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -18, -30
+  rolloff = 660
+  pitch = Jp(1, j)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.095
+  pan = 0.3
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -18, -30
+  rolloff = 660
+  pitch = Jp(2, j)
+  gate = 0.97 - frac(t / 4)
+  gain = 0.09
+  pan = 0
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+== ratios/pads.utonal | pads | energy 1 | density 1 | mood dark float
+# the undertone chord: the root times 6/6, 6/5 and 6/4 (a just minor triad), swelling as sin^2 over two bars
+Jp(m, i) = J(6 Q(i) / (6 - m))
+Ja = 0.3 + 0.7 sin(pi frac(t / 8)) sin(pi frac(t / 8))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -22
+  rolloff = 660
+  pitch = Jp(0, j)
+  gate = 0.98 - frac(t / 8)
+  amp = Ja
+  gain = 0.1
+  pan = -0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -22
+  rolloff = 660
+  pitch = Jp(1, j)
+  gate = 0.98 - frac(t / 8)
+  amp = Ja
+  gain = 0.095
+  pan = 0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -22
+  rolloff = 660
+  pitch = Jp(2, j)
+  gate = 0.98 - frac(t / 8)
+  amp = Ja
+  gain = 0.09
+  pan = 0
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+# ================================================================================================= drums (3/4)
+
+== ratios/kick.downbeat | kick | energy 2 | density 1 | mood calm groove
+# a soft dash on the first pulse of each 3/4 bar: (pulse mod 3 == 0)(1/2 - frac(3t/4))
+Jk = (mod(floor(0.75t), 3) == 0)(0.5 - frac(0.75t))
+
+drum kick {
+  kind = dash
+  trigger = Jk
+  from = 320
+  to = 52
+  dash = 26
+  hold = 40
+  decay = 110
+  length = 420
+  partials = 0, -24, -14
+  rolloff = 660
+  gain = 0.62
+}
+
+== ratios/kick.hemiola | kick | energy 3 | density 2 | mood driving strange
+# three against two: the kick on the bar's halves (2 a bar) while the pulses go in threes, the ratio 3:2 as rhythm
+Jk = 0.5 - frac(t / 2)
+
+drum kick {
+  kind = dash
+  trigger = Jk
+  from = 320
+  to = 52
+  dash = 26
+  hold = 40
+  decay = 110
+  length = 420
+  partials = 0, -24, -14
+  rolloff = 660
+  gain = 0.62
+}
+
+== ratios/hat.pulses | hat | energy 1 | density 1 | mood calm groove
+# a glass tick on the second and third pulses: the pah-pah of the waltz
+Jt = (mod(floor(0.75t), 3) != 0)(0.5 - frac(0.75t))
+
+drum hat {
+  kind = dash
+  trigger = Jt
+  from = 6400
+  to = 5200
+  dash = 6
+  hold = 6
+  decay = 30
+  length = 120
+  partials = 0, -14
+  rolloff = 660
+  gain = 2.4
+  pan = 0.3
+}
+
+== ratios/hat.eighths | hat | energy 3 | density 3 | mood driving
+# every eighth of the 3/4 bar, the downbeat's louder, the rest falling 5/6 each
+Jt = 0.5 - frac(1.5t)
+
+drum hat {
+  kind = dash
+  trigger = Jt
+  amp = (5 / 6)^mod(floor(1.5t), 6)
+  from = 7400
+  to = 5600
+  dash = 5
+  decay = 14
+  length = 80
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== ratios/perc.ratio | perc | energy 2 | density 2 | mood strange groove
+# a woodblock on the ratio 5:3 against the bar: five hits where three pulses go
+Jq = 0.5 - frac(5t / 4)
+
+drum perc {
+  kind = dash
+  trigger = Jq
+  from = 1500
+  to = 1100
+  dash = 4
+  hold = 3
+  decay = 30
+  length = 110
+  partials = 0, -12, -20
+  rolloff = 660
+  gain = 0.5
+  pan = -0.25
+  reverb = 0.3
+}
+
+# ================================================================================================= seams
+
+== ratios/seam.harmonics | seam | energy 2 | density 2 | mood into-return into-peak into-intro
+# up the harmonic series of the last bar's fundamental over the last four beats: harmonics 2 to 13, three a beat
+sweep = J(Q(7) (2 + floor(3 (clamp(t, 28, 31.99) - 28))))
+
+voice rise {
+  wave = additive
+  partials = 0, -20
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 28)(0.6 - frac(3t))
+  gain = 0.1
+  attack = 2
+  decay = 160
+  sustain = 0.2
+  release = 80
+  reverb = 0.5
+}
+
+== ratios/seam.undertones | seam | energy 1 | density 1 | mood into-strip into-intro
+# down the undertone series over the last three beats: 8/1, 8/2 ... 8/6 of the root, each falling further
+sweep = J(8 Q(7) / (1 + floor(2 (clamp(t, 29, 31.99) - 29))))
+
+voice rise {
+  wave = additive
+  partials = 0, -16
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 29)(0.8 - frac(2t))
+  gain = 0.1
+  attack = 10
+  decay = 300
+  sustain = 0.3
+  release = 200
+  reverb = 0.5
+}
+
+== ratios/seam.hemiola | seam | energy 3 | density 3 | mood into-return into-peak
+# a roll in threes against the bar over the last two beats: the eighths of 3/4 doubled to six a pulse
+roll = (t >= 30)(0.5 - frac(4.5t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.4 + 0.3 (t - 30)
+  from = 340
+  to = 120
+  dash = 10
+  hold = 4
+  decay = 50
+  length = 180
+  partials = 0, -12, -10
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}

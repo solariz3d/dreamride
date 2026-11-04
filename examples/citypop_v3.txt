@@ -1,0 +1,398 @@
+# City-pop v3: sixteen bars of our own, F major, 94 bpm, swung sixteenths.
+#
+# THE FEELING: wistful nostalgia. A warm night drive, remembering someone: bittersweet and
+# longing, but with a pulse. The groove keeps driving; the melody keeps reaching and falling back.
+#
+# What serves it (each is written as functions below, and checked in tests/example_music.rs):
+#   1 longing     the hook opens with a rising sixth (C5 F5 A5, held), the interval of reaching
+#                 for something, and its answers fall back down by step.
+#   2 the ache    the hook's peak is an APPOGGIATURA: D6 lands on the downbeat over A7b9, a note
+#                 that does not belong to the chord, and resolves down a half step to C#6. Sloboda
+#                 (1991) found tears cluster at exactly this figure.
+#   3 denial      the tonic is withheld: the first hook ends deceptively on D minor (ii V vi), and
+#                 the melody never rests on F over an F chord until bar 15.
+#   4 the memory  the borrowed minor iv: in bar 14 Bbmaj9 turns to Bbm9, the bittersweet city-pop
+#                 move, and the melody's one climax note (F6, saved for this section and heard
+#                 nowhere else) falls onto Db6, the borrowed note, then sighs Db -> C.
+#   5 arrival     Ab5 over the iv rises to A5 as the tonic finally lands (Fmaj9, bar 15), and the
+#                 line settles on F with a slow vibrato: the payoff the whole loop withheld
+#                 (Huron's ITPRA: tension, then a prediction fulfilled late).
+#   6 a held breath  the last beat of the breakdown (bar 12) stops dead, every voice, so only the
+#                 room is left ringing before everything returns: a sudden change of texture.
+#   7 a person playing  every lead note is shaped by where it sits in its two-bar phrase: louder
+#                 and brighter into the middle and softer at the ends (Todd's arch), a little
+#                 behind the grid early and lengthened at the end (phrase time), louder when
+#                 higher (KTH High Loud, 3 dB/octave) and when further from the chord root (KTH
+#                 melodic charge); it scoops into notes, grows a late vibrato on long ones, and
+#                 sighs down at the ends of phrases.
+#   8 the room    a warm plate-ish reverb, a dotted-eighth ping-pong on the lead, slow tape wow
+#                 and soft saturation: the sound of something remembered.
+#
+# The groove, voicings and form are v2's (see citypop_v2.txt); bars 1-4 still use the stock
+# "marusa" shape (IVmaj7 III7 vi7 ...), common to hundreds of songs. Everything else is our own.
+
+bpm 94
+beats 64
+rate 48000
+
+# ======================================================================== space
+
+loop 1                  # tails from the end ring over the start: the file loops seamlessly
+reverb_size 0.74
+reverb_damp 0.55
+reverb_predelay 22
+delay_beats 0.75        # a dotted eighth
+delay_feedback 0.36
+delay_tone 2600         # each repeat darker
+wow 7                   # cents: an old tape, gently
+wow_rate 0.45
+warmth 0.35
+
+# ======================================================================== time and patterns
+
+sw(x) = (floor(2x) + max(frac(2x) / 1.16, (frac(2x) - 0.16) / 0.84)) / 2
+step(x) = floor(4 sw(x))
+ph(x) = frac(4 sw(x))
+bar(s) = mod(floor(s / 16), 16)
+pos(s) = mod(s, 16)
+d16(n, i) = mod(floor(n / 10^(15 - i)), 10)
+pick(c, p1, p2, p3, p4, p5, p6) = if(c < 2, p1, if(c < 3, p2, if(c < 4, p3, if(c < 5, p4, if(c < 6, p5, p6)))))
+# Eight lead bars: codes 1-4 from one list, 5-8 from another (a definition takes at most 8 parameters).
+half(c, p1, p2, p3, p4) = pick(c, p1, p2, p3, p4, 0, 0)
+smoothstep(u) = u^2(3 - 2u)
+
+# ======================================================================== harmony
+
+key = -4                                    # F4
+h(d) = floor((12d + 5) / 7)
+
+# Two chords per bar. Degrees and qualities, one digit per half bar:
+#   1-4   IVmaj9 | III7b9 | vi9 | v9 I13          (intro, as v2)
+#   5-8   IVmaj9 | III7b9 | ii9 V13 | vi9         (the hook; V -> vi, the tonic denied)
+#   9-12  IVmaj9 | III7b9 | vi9 | v9 I13          (breakdown)
+#   13-16 IVmaj9 | ivm9   | Imaj9 | v9 I13        (the borrowed iv, then home at last; I13 -> IV loops)
+slot(s) = mod(floor(s / 8), 32)
+deg(s) = d16(if(slot(s) < 16, 3322554033221455, 3322554033330040), mod(slot(s), 16))
+qual(s) = d16(if(slot(s) < 16, 1144222311442322, 1144222311221123), mod(slot(s), 16))
+
+#   1 maj9 (4 7 11 14)   2 m9 (3 7 10 14)   3 dominant 13 (4 9 10 14)   4 dominant 7 b9 b13 (4 8 10 13)
+ivl(q, j) = 3j + d16(4344446554445554, 4j + q - 1)
+tone(j, s) = h(deg(s)) + ivl(qual(s), j)
+
+s0(a, b, c, d) = min(min(a, b), min(c, d))
+s1(a, b, c, d) = min(max(min(a, b), min(c, d)), min(max(a, b), max(c, d)))
+s2(a, b, c, d) = max(max(min(a, b), min(c, d)), min(max(a, b), max(c, d)))
+s3(a, b, c, d) = max(max(a, b), max(c, d))
+kth(k, a, b, c, d) = if(k < 1, s0(a, b, c, d), if(k < 2, s1(a, b, c, d), if(k < 3, s2(a, b, c, d), s3(a, b, c, d))))
+wrap(z, lo) = lo + mod(z - lo, 12)
+voicing(k, s, lo) = kth(k, wrap(tone(0, s), lo), wrap(tone(1, s), lo), wrap(tone(2, s), lo), wrap(tone(3, s), lo))
+padlo = -6
+
+# ======================================================================== arrangement (one digit per bar)
+
+kicks = 1111111100001111
+snares = 1111111122241113                   # 1 groove, 2 breakdown, 4 breakdown stopping at beat 4, 3 the fill
+hats = 1111111122231111                     # 3: the riser in bar 12, cut off at beat 4
+basses = 1112112344451116
+leads = 0000123450006780                    # which lead bar plays (below); 0 rests
+keys_on = 0000111100001111
+on(n, s) = d16(n, bar(s))
+# The held breath: the last beat of bar 12.
+stop(x) = min(x >= 47, x < 48)
+
+# ======================================================================== drums
+
+hit(d, x) = if(d > 0, 0.5 - ph(x), -1)
+
+kickpat(s) = if(on(kicks, s) == 0, 0, if(mod(bar(s), 4) == 3, 8000006080000060, 8000006080000000))
+kickd(s) = d16(kickpat(s), pos(s))
+
+snarepat(s) = pick(on(snares, s), if(mod(bar(s), 8) == 7, 0000800200208044, 0000800200208002), 0000300000003000, 0000800234567888, 0000300000000000, 0, 0)
+snared(s) = d16(snarepat(s), pos(s))
+
+hatpat(s) = pick(on(hats, s), 4262426242624262, 3030303030303030, 1122334455660000, 0, 0, 0)
+hatd(s) = d16(hatpat(s), pos(s))
+jit(s) = floor(3 frac(sin(12.9898 s + 4.1) * 43758.5453)) - 1
+hatv(s) = if(hatd(s) > 0, max(hatd(s) + jit(s), 1), 0)
+
+kage(s) = if(kickd(s) > 0, 0, if(kickd(s - 1) > 0, 1, if(kickd(s - 2) > 0, 2, if(kickd(s - 3) > 0, 3, 4))))
+duck(x, depth) = 1 - depth smoothstep(clamp((kage(step(x)) + ph(x)) / 0.15, 0, 1)) (1 - smoothstep(clamp((kage(step(x)) + ph(x) - 0.15) / 2.5, 0, 1)))
+
+# The band breathes with the four-bar section: a little up into its third bar, down at its seams.
+section(x) = arch(frac(x / 16), 0.7)
+
+# ======================================================================== bass (as v2)
+
+bassd(s) = d16(pick(on(basses, s), 1990002019010205, 1902002519010205, 1990003019010305, 1999999900002900, 1999999510200000, 1902002519012345), pos(s))
+held(s) = (bassd(s) == 9)(1 + (bassd(s-1) == 9)(1 + (bassd(s-2) == 9)(1 + (bassd(s-3) == 9)(1 + (bassd(s-4) == 9)(1 + (bassd(s-5) == 9)(1 + (bassd(s-6) == 9)))))))
+broot(s) = mod(h(deg(s)) + 5, 12) - 5
+bassnote(c, s) = if(c == 5, broot(s + 1) - 1, broot(s) + if(c == 2, 12, if(c == 3, 7, if(c == 4, 10, 0))))
+bassat(s) = bassnote(bassd(s - held(s)), s - held(s))
+
+# ======================================================================== the lead
+
+# Each lead bar is three digit strings, one digit per sixteenth:
+#   rhythm      0 rest, 1 a note starts, 2 it holds
+#   pitch       0 C5  1 D5  2 E5  3 F5  4 G5  5 A5  6 Bb5  7 C6  8 D6  9 F6
+#   accidental  0 none, 1 flat, 2 sharp
+#   1 bar 5  (IVmaj9)   the call: C F A, the sixth held; then C A as the pickup
+#   2 bar 6  (III7b9)   the peak: D6 on the downbeat (appoggiatura) -> C#6, A, F, then breath
+#   3 bar 7  (ii9 V13)  the answer begins: D F A, held across the change, G E
+#   4 bar 8  (vi9)      G -> F (appoggiatura), E, D held: home denied
+#   5 bar 9             the call's first half alone, the A left hanging in the delay
+#   6 bar 13 (IVmaj9)   the call again, climbing on: C F A C D, to F6, the climax
+#   7 bar 14 (ivm9)     F6 held as the chord turns minor, Db6 (the borrowed note), C, Bb, Ab
+#   8 bar 15 (Imaj9)    Ab rises to A as the tonic lands, G, and F at last
+lrpat(c) = if(c < 5, half(c, 0012121222221212, 1222122212122200, 0012121222121222, 1222122212122222), half(c - 4, 0012121222222222, 0012121212121222, 2222122212121222, 1222221212222222))
+lppat(c) = if(c < 5, half(c, 0000335555557755, 8888777755333300, 0011335555442222, 4444333322111111), half(c - 4, 0000335555555555, 0000335577889999, 9999888877665555, 5555554433333333))
+lapat(c) = if(c < 5, half(c, 0, 200000000000, 0, 0), half(c - 4, 0, 0, 111100001111, 0))
+
+lr(s) = if(on(leads, s) == 0, 0, d16(lrpat(on(leads, s)), pos(s)))
+lp(s) = d16(lppat(on(leads, s)), pos(s))
+la(s) = d16(lapat(on(leads, s)), pos(s))
+# How many steps the current note has held, and so the step it started on (looking back up to 10).
+lheld(s) = (lr(s) == 2)(1 + (lr(s-1) == 2)(1 + (lr(s-2) == 2)(1 + (lr(s-3) == 2)(1 + (lr(s-4) == 2)(1 + (lr(s-5) == 2)(1 + (lr(s-6) == 2)(1 + (lr(s-7) == 2)(1 + (lr(s-8) == 2)(1 + (lr(s-9) == 2))))))))))
+lon(s) = s - lheld(s)
+# Pitch codes to semitones above F4: the scale from C5, with code 9 skipping up to F6.
+lpt(k) = h(k + 4 + (k == 9))
+lacc(a) = if(a == 1, -1, if(a == 2, 1, 0))
+lnote(s) = lpt(lp(lon(s))) + lacc(la(lon(s)))
+
+# Phrase time: the lead's own clock, warped by Todd's arch over each two-bar phrase. It sits a
+# little behind the band as a phrase begins, pushes through the middle, and lengthens its last
+# notes; every phrase still starts and ends exactly with the band (expressive.rs, `phrase`).
+lx(x) = 8 phrase(x / 8, 0.1, 0.6)
+lst(x) = step(lx(x))
+lph(x) = ph(lx(x))
+
+# Articulation: a small gap between notes inside a phrase, none before a rest (the phrase-final
+# note is held to its full length: the KTH Phrase rule's final lengthening).
+lgate(x) = if(lr(lst(x)) == 0, -1, if(lr(lst(x) + 1) == 2, 1, if(lr(lst(x) + 1) == 0, 0.97 - lph(x), 0.8 - lph(x))))
+
+# Dynamics per note, in dB, fixed at its onset s:
+#   Todd's phrase arch over the two-bar phrase (-4 dB at its ends, 0 at the peak),
+#   KTH High Loud (+3 dB per octave above F5),
+#   KTH melodic charge relative to the chord root, at k = 2 (0.4 dB per unit; up to 2.6 dB).
+lphrase(s) = arch(frac(s / 32), 0.6)
+ldb(s) = 4 (lphrase(s) - 1) + (lnote(s) - 12) / 4 + 0.4 charge(lnote(s) - h(deg(s)))
+
+# Pitch that lives: a scoop up into every note (from further below when it starts a phrase),
+# a vibrato that waits a quarter second and then grows (only long notes ever reach it), and a
+# sigh: the last note before a rest falls away as its gate closes.
+scoopfrom(s) = if(lr(s - 1) == 0, 0.7, 0.25)
+scoop(x) = -scoopfrom(lon(lst(x))) (1 - smooth(note_age / 0.08))
+ends(x) = max(lr(lst(x) + 1) == 0, lr(lst(x)) == 0)
+sigh(x) = -0.8 ends(x) (1 - smooth(note_left / 0.12))
+lead_pitch(x) = key + lnote(lst(x)) + scoop(x) + vibrato(note_age, 0.25, 0.5, 0.2, 5.2) + sigh(x)
+
+# ======================================================================== voices
+
+drum kick {
+  kind = kick
+  trigger = hit(kickd(step(t)), t)
+  amp = kickd(step(t)) / 8
+  gain = 1.0
+}
+
+drum snare {
+  kind = snare
+  trigger = hit(snared(step(t)), t)
+  amp = snared(step(t)) / 8 * db(1.5 section(t))
+  gain = 0.48
+  pan = 0.05
+  reverb = 0.3
+}
+
+drum hat {
+  kind = hat
+  trigger = hit(hatv(step(t)), t)
+  amp = hatv(step(t)) / 8 * db(2 section(t) - 1)
+  gain = 0.3
+  pan = 0.3
+  reverb = 0.06
+}
+
+voice bass {
+  wave = saw
+  pitch = key - 24 + bassat(step(t))
+  gate = if(bassd(step(t)) == 0, -1, if(bassd(step(t) + 1) == 9, 1, 0.6 - ph(t)))
+  amp = db(if(pos(step(t) - held(step(t))) == 0, 1, 0) + section(t) - 1)
+  gain = 0.34
+  attack = 3
+  decay = 180
+  sustain = 0.55
+  release = 40
+  cutoff = 380
+  filter_env = 2.2
+  filter_decay = 90
+  resonance = 0.25
+  drive = 1.2
+}
+
+# Pads: the sorted rootless voicings of v2, now a detuned pair per note, breathing with the
+# section, re-struck at each chord, ducking under the kick, and sent to the room.
+padcut(x) = if(x < 32, 650, if(x < 48, 650 * 2^(2.3 (x - 32) / 16), 1400))
+changes(s) = max(deg(s + 8) != deg(s), qual(s + 8) != qual(s))
+padgate(x) = if(max(stop(x), min(changes(floor(4x)), frac(x / 2) > 0.925)), -1, 1)
+pad(k, x) = key + voicing(k, floor(4x), padlo)
+padamp(x) = duck(x, 0.5) db(4 section(x) - 4)
+
+voice pad1 {
+  wave = saw
+  pitch = pad(0, t)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.05
+  pan = -0.45
+  attack = 140
+  decay = 1500
+  sustain = 0.6
+  release = 260
+  cutoff = padcut(t)
+  resonance = 0.15
+  detune = 11
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = saw
+  pitch = pad(1, t)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.045
+  pan = 0.15
+  attack = 140
+  decay = 1500
+  sustain = 0.6
+  release = 260
+  cutoff = padcut(t)
+  resonance = 0.15
+  detune = 9
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = saw
+  pitch = pad(2, t)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.045
+  pan = -0.15
+  attack = 140
+  decay = 1500
+  sustain = 0.6
+  release = 260
+  cutoff = padcut(t)
+  resonance = 0.15
+  detune = 10
+  reverb = 0.4
+}
+
+voice pad4 {
+  wave = saw
+  pitch = pad(3, t)
+  gate = padgate(t)
+  amp = padamp(t)
+  gain = 0.04
+  pan = 0.45
+  attack = 140
+  decay = 1500
+  sustain = 0.6
+  release = 260
+  cutoff = padcut(t)
+  resonance = 0.15
+  detune = 12
+  reverb = 0.4
+}
+
+# Keys: v2's offbeat stabs, now riding the section's arch and sent to the room.
+keyd(s) = if(on(keys_on, s) == 0, 0, d16(0060000500600040, pos(s)))
+keygate(x) = if(keyd(step(x)) > 0, 0.7 - ph(x), -1)
+keynote(k, x) = key + 12 + voicing(k, step(x) + 1, padlo)
+keyamp(x) = keyd(step(x)) / 6 * duck(x, 0.35) * db(3 section(x) - 2)
+
+voice keys1 {
+  wave = triangle
+  pitch = keynote(0, t)
+  gate = keygate(t)
+  amp = keyamp(t)
+  gain = 0.07
+  pan = -0.3
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+  reverb = 0.22
+}
+
+voice keys2 {
+  wave = triangle
+  pitch = keynote(1, t)
+  gate = keygate(t)
+  amp = keyamp(t)
+  gain = 0.065
+  pan = -0.1
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+  reverb = 0.22
+}
+
+voice keys3 {
+  wave = triangle
+  pitch = keynote(2, t)
+  gate = keygate(t)
+  amp = keyamp(t)
+  gain = 0.065
+  pan = 0.1
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+  reverb = 0.22
+}
+
+voice keys4 {
+  wave = triangle
+  pitch = keynote(3, t)
+  gate = keygate(t)
+  amp = keyamp(t)
+  gain = 0.06
+  pan = 0.3
+  attack = 2
+  decay = 220
+  sustain = 0.2
+  release = 90
+  cutoff = 2400
+  drive = 0.8
+  reverb = 0.22
+}
+
+# The lead: a slightly detuned square, brighter as it rises into the phrase, carried into the
+# room and echoed by the dotted-eighth delay (which replaces v2's hand-written echo voice).
+voice lead {
+  wave = square
+  pitch = lead_pitch(t)
+  gate = lgate(t)
+  amp = db(ldb(lon(lst(t))))
+  gain = 0.2
+  pan = 0.08
+  attack = 6
+  decay = 400
+  sustain = 0.75
+  release = 260
+  cutoff = 1500 * 2^(1.2 arch(frac(lx(t) / 8), 0.6))
+  filter_env = 1
+  filter_decay = 150
+  resonance = 0.2
+  detune = 6
+  reverb = 0.32
+  delay = 0.3
+}

@@ -1,0 +1,133 @@
+# Saved from a Dreamride stream (from grammar seed 555021, seed 555021): stages 1 to 3, 24 bars.
+#
+# Stage 1: the seed opens with the bass and hat.
+# Stage 2: build: the lead comes in.
+# Stage 3: build: the kick comes in; a new progression, 1 4 5 1 1 4 5 5.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 109
+reverb_size 0.75
+reverb_predelay 17
+delay_beats 1.5
+delay_feedback 0.3
+warmth 0.25
+beats 96
+
+Q = floor(t / 32)
+P = 30583
+on(k) = mod(floor(P / 2^mod(k, 16)), 2)
+T_0 = t - 0
+p_0 = s_0 + 2
+q_0 = s_0 + 1
+X_0(x) = sin(p_0 tau x / 16)
+Y_0(x) = cos(q_0 tau x / 16)
+z_0 = (p_0 - q_0) / (p_0 + q_0)
+ji_0 = 34.6241 (z_0 + z_0^3/3 + z_0^5/5 + z_0^7/7)
+c_0 = 3 + s_0
+h_0(d) = floor((12d + c_0) / 7)
+g_0(u) = h_0(floor(u)) + (h_0(floor(u) + 1) - h_0(floor(u))) smooth((frac(u) - 0.7) / 0.3)
+N_0 = 65456545
+R_0(i) = mod(floor(N_0 / 10^(7 - mod(i, 8))), 10) - 5
+M_0(k) = R_0(floor(k / 16)) + floor(3 (X_0(k / 4) + Y_0(k / 4)) + 0.5)
+lead_0(k) = h_0(M_0(k)) + 8
+e_0 = floor(4T_0)
+u_0 = frac(4T_0)
+b_0 = frac(T_0)
+j_0 = floor(T_0 / 4)
+s_0 = floor(T_0 / 16)
+T_1 = t - 32
+p_1 = s_1 + 2
+q_1 = s_1 + 1
+X_1(x) = sin(p_1 tau x / 16)
+Y_1(x) = cos(q_1 tau x / 16)
+z_1 = (p_1 - q_1) / (p_1 + q_1)
+ji_1 = 34.6241 (z_1 + z_1^3/3 + z_1^5/5 + z_1^7/7)
+c_1 = 3 + s_1
+h_1(d) = floor((12d + c_1) / 7)
+g_1(u) = h_1(floor(u)) + (h_1(floor(u) + 1) - h_1(floor(u))) smooth((frac(u) - 0.7) / 0.3)
+N_1 = 65456545
+R_1(i) = mod(floor(N_1 / 10^(7 - mod(i, 8))), 10) - 5
+M_1(k) = R_1(floor(k / 16)) + floor(3 (X_1(k / 4) + Y_1(k / 4)) + 0.5)
+lead_1(k) = h_1(M_1(k)) + 8
+e_1 = floor(4T_1)
+u_1 = frac(4T_1)
+b_1 = frac(T_1)
+j_1 = floor(T_1 / 4)
+s_1 = floor(T_1 / 16)
+T_2 = t - 64
+p_2 = s_2 + 2
+q_2 = s_2 + 1
+X_2(x) = sin(p_2 tau x / 16)
+Y_2(x) = cos(q_2 tau x / 16)
+z_2 = (p_2 - q_2) / (p_2 + q_2)
+ji_2 = 34.6241 (z_2 + z_2^3/3 + z_2^5/5 + z_2^7/7)
+c_2 = 3 + s_2
+h_2(d) = floor((12d + c_2) / 7)
+g_2(u) = h_2(floor(u)) + (h_2(floor(u) + 1) - h_2(floor(u))) smooth((frac(u) - 0.7) / 0.3)
+N_2 = 58955899
+R_2(i) = mod(floor(N_2 / 10^(7 - mod(i, 8))), 10) - 5
+M_2(k) = R_2(floor(k / 16)) + floor(3 (X_2(k / 4) + Y_2(k / 4)) + 0.5)
+lead_2(k) = h_2(M_2(k)) + 8
+e_2 = floor(4T_2)
+u_2 = frac(4T_2)
+b_2 = frac(T_2)
+j_2 = floor(T_2 / 4)
+s_2 = floor(T_2 / 16)
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = if(Q == 0, 0, if(Q == 1, lead_1(e_1) + (lead_1(e_1 + 1) - lead_1(e_1)) smooth((u_1 - 0.75) / 0.25), lead_2(e_2) + (lead_2(e_2 + 1) - lead_2(e_2)) smooth((u_2 - 0.75) / 0.25)))
+  gate = if(Q == 0, 0, if(Q == 1, on(e_1)(0.7 - u_1), on(e_2)(0.7 - u_2)))
+  gain = 0.17
+  pan = 0.1
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.3
+  delay = 0.25
+}
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = if(Q == 0, h_0(R_0(j_0)) - 40, if(Q == 1, h_1(R_1(j_1)) - 40, h_2(R_2(j_2)) - 40))
+  gate = if(Q == 0, 0.85 - b_0, if(Q == 1, 0.85 - b_1, 0.85 - b_2))
+  gain = 0.27
+  attack = 3
+  decay = 250
+  sustain = 0.6
+}
+
+drum kick {
+  kind = dash
+  trigger = if(Q == 0, 0, if(Q == 1, 0, (M_2(e_2 - 1) - M_2(e_2) >= 2)(0.5 - u_2)))
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.5
+}
+
+drum hat {
+  kind = dash
+  trigger = if(Q == 0, 0.5 - frac(p_0 T_0), if(Q == 1, 0.5 - frac(p_1 T_1), 0.5 - frac(p_2 T_2)))
+  amp = if(Q == 0, 0.6 + 0.4 (frac(p_0 T_0 / 2) < 0.5), if(Q == 1, 0.6 + 0.4 (frac(p_1 T_1 / 2) < 0.5), 0.6 + 0.4 (frac(p_2 T_2 / 2) < 0.5)))
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 1.5
+  pan = 0.3
+}

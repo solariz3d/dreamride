@@ -1,0 +1,438 @@
+# SPECIES: MAQAM (the quarter-tone bounce, behind the Explore option since 2026-11-03). Physical models in quarter tones, half time (src/compose/book.rs).
+#
+# Phrases are shaped by bodies, not by bars. A ball dropped at the start of each two-bar phrase bounces with
+# restitution e, each gap e times the last, so the bounces speed up and the phrase ends where the ball comes to rest:
+# with the first gap 8(1 - e) the whole fall takes exactly the 8 beats of the phrase, and the bounce under position u is
+# bk(u, e) = floor(log2(1 - u/8) / log2(e)), its phase bph(u, e). A note on every bounce, a kick on every bounce: the
+# accelerando is the physics. A pendulum, cos(tau t / 4) damped by 2^(-t/6), swings the lead between two notes without
+# steps; a damped spring, 2^(-12 u) cos(3 tau u), makes each note overshoot and settle. The tuning is 24-tone equal
+# temperament (quarter tones), qt(k) = Mk + k/2, through maqam modes (Rast, Bayati, Hijaz) stored two digits a step,
+# with neutral thirds between major and minor. Tempo 120-140 felt in half time. Sources: classical mechanics (the
+# coefficient of restitution); on maqam, the Cairo Congress of Arab Music (1932) and S. Marcus (1989).
+
+== species
+name maqam
+title maqam in quarter tones: phrases shaped by bouncing balls, pendulums and springs (the first bounce, kept for Explore)
+tuning 24-tone equal temperament (quarter tones), qt(k) = Mk + k/2, through maqam modes
+meter half time, with accelerandos made by the bounces
+generator physical models: a bouncing ball, a damped pendulum, a damped spring
+form loop arcs
+timbre marimba-like bells and a round bass
+bpm 120 140
+weight 1
+explore yes
+open kick+bass | lead | pads+perc | hat+counter | bass+clap
+
+== helpers
+bk(u, e) = floor(log2(1 - min(u, 7.99) / 8) / log2(e))
+bph(u, e) = (u - 8 + 8 e^bk(u, e)) / (8 (1 - e) e^bk(u, e))
+mq(i) = mod(floor(Mn / 10^(7 - mod(i, 8))), 10)
+Mu = mod(t, 8)
+
+== frame
+qt(k) = Mk + k / 2
+rq(d) = 24 floor(d / 7) + mod(floor(Mr / 100^mod(d, 7)), 100)
+
+# ================================================================================================= maqam (the progression slot)
+
+== maqam/prog.rast | progression | energy 2 | density 2 | mood warm bright
+# maqam Rast in quarter steps 0 4 7 10 14 18 21 (its third and seventh are neutral, between major and minor), roots 0 0 3 3 0 0 4 4
+Mr = 21181410070400
+Mk = -9
+Mn = 330044
+
+== maqam/prog.bayati | progression | energy 1 | density 1 | mood longing dark
+# maqam Bayati, 0 3 6 10 14 16 20: the second degree a three-quarter tone above the first, roots 0 0 5 5 3 3 0 4
+Mr = 20161410060300
+Mk = -7
+Mn = 553304
+
+== maqam/prog.hijaz | progression | energy 3 | density 2 | mood tense driving
+# maqam Hijaz, 0 2 8 10 14 16 20: the augmented second in the middle, roots 0 0 3 3 4 4 0 0
+Mr = 20161410080200
+Mk = -7
+Mn = 334400
+
+# ================================================================================================= leads
+
+== maqam/lead.ball | lead | energy 2 | density 2 | mood strange bright
+# a note on every bounce of a ball dropped each two bars (restitution 0.72), falling down the maqam as it settles, each note sprung: 2^(-10 u) cos(4 pi u)
+Mb = qt(rq(13 - min(bk(Mu, 0.72), 6))) + 2 * 2^(-10 bph(Mu, 0.72)) cos(2 tau bph(Mu, 0.72))
+
+voice lead {
+  wave = additive
+  partials = 0, -26, -10, -30, -16, -32
+  rolloff = 660
+  pitch = Mb
+  gate = (bk(Mu, 0.72) < 12)(0.55 - bph(Mu, 0.72))
+  gain = 0.17
+  pan = 0.1
+  attack = 2
+  decay = 420
+  sustain = 0.15
+  release = 250
+  reverb = 0.35
+  delay = 0.25
+}
+
+== maqam/lead.pendulum | lead | energy 1 | density 1 | mood voice wander | glide
+# a pendulum: the voice swings around the maqam's ninth degree, cos(tau t / 4), its swing dying as 2^(-t / 6) through each four bars, no steps at all
+Mb = qt(rq(9)) + 3.5 cos(tau t / 4) * 2^(-mod(t, 16) / 6)
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -24, -32
+  rolloff = 660
+  pitch = Mb
+  gate = frac(t / 16) < 0.95
+  gain = 0.2
+  pan = 0.05
+  attack = 120
+  decay = 800
+  sustain = 0.75
+  release = 500
+  reverb = 0.5
+  delay = 0.2
+}
+
+== maqam/lead.spring | lead | energy 3 | density 3 | mood driving bright
+# eighths, each a damped spring settling onto its quarter-tone target from three semitones off, alternately above and below
+Ms(k) = 9 + mod(3k, 7) - 2 (mod(k, 5) == 4)
+Mb = qt(rq(Ms(floor(2t)))) + 3 (1 - 2 mod(floor(2t), 2)) * 2^(-12 frac(2t)) cos(1.5 tau frac(2t))
+
+voice lead {
+  wave = additive
+  partials = 0, -26, -10, -30, -16
+  rolloff = 660
+  pitch = Mb
+  gate = 0.7 - frac(2t)
+  gain = 0.15
+  pan = 0.12
+  attack = 2
+  decay = 220
+  sustain = 0.3
+  release = 80
+  reverb = 0.3
+  delay = 0.25
+}
+
+# ================================================================================================= counter
+
+== maqam/counter.second | counter | energy 2 | density 2 | mood strange calm
+# a second ball, livelier (restitution 0.8), dropped half a phrase later and an octave down: the two bounce against each other
+Mc = qt(rq(9 - min(bk(mod(t + 4, 8), 0.8), 5))) - 12
+
+voice counter {
+  wave = additive
+  partials = 0, -26, -10, -30, -16
+  rolloff = 660
+  pitch = Mc
+  gate = (bk(mod(t + 4, 8), 0.8) < 14)(0.55 - bph(mod(t + 4, 8), 0.8))
+  gain = 0.12
+  pan = -0.35
+  attack = 2
+  decay = 380
+  sustain = 0.1
+  release = 200
+  reverb = 0.45
+}
+
+# ================================================================================================= basses
+
+== maqam/bass.pendulum | bass | energy 1 | density 2 | mood warm wander | glide
+# the bass as a pendulum between the root and the fifth, cos(tau t / 8), struck on every beat while it swings, sliding the whole time
+Mp = qt(rq(mq(j))) - 24 + 3.5 - 3.5 cos(tau t / 8)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20
+  rolloff = 660
+  pitch = Mp
+  gate = 0.85 - frac(t)
+  gain = 0.18
+  attack = 8
+  decay = 500
+  sustain = 0.6
+  release = 120
+}
+
+== maqam/bass.ball | bass | energy 3 | density 2 | mood driving groove
+# the bass bounces too (restitution 0.6), the root on the first three bounces and an octave up on the quick ones after
+Mp = qt(rq(mq(j))) - 24 + 12 (bk(Mu, 0.6) >= 3)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20
+  rolloff = 660
+  pitch = Mp
+  gate = (bk(Mu, 0.6) < 9)(0.6 - bph(Mu, 0.6))
+  gain = 0.18
+  attack = 3
+  decay = 260
+  sustain = 0.5
+  release = 60
+}
+
+== maqam/bass.walk | bass | energy 2 | density 2 | mood groove warm
+# a walk on the beats, root, third, fourth of the maqam, then a quarter tone under the next root (the neutral approach)
+Mp = qt(if(mod(floor(t), 4) == 3, rq(mq(j + 1)) - 1, rq(mq(j) + mod(floor(320 / 10^mod(floor(t), 4)), 10)))) - 24
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20
+  rolloff = 660
+  pitch = Mp
+  gate = 0.8 - frac(t)
+  amp = 1 - 0.3 (mod(floor(t), 2) == 1)
+  gain = 0.18
+  attack = 4
+  decay = 300
+  sustain = 0.5
+  release = 80
+}
+
+# ================================================================================================= pads
+
+== maqam/pads.neutral | pads | energy 1 | density 1 | mood strange float
+# the neutral triad, root, three and a half semitones, seven: neither major nor minor, struck every two bars
+Mt(m, i) = qt(rq(mq(i)) + 7m) - 12
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Mt(0, j)
+  gate = 0.98 - frac(t / 8)
+  gain = 0.09
+  pan = -0.3
+  attack = 200
+  release = 700
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Mt(1, j)
+  gate = 0.98 - frac(t / 8)
+  gain = 0.085
+  pan = 0.3
+  attack = 200
+  release = 700
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Mt(2, j)
+  gate = 0.98 - frac(t / 8)
+  gain = 0.08
+  pan = 0
+  attack = 200
+  release = 700
+  reverb = 0.5
+}
+
+== maqam/pads.maqam | pads | energy 2 | density 2 | mood warm longing
+# degrees 0, 2 and 4 of the maqam on the bar's root, struck each bar and swelling
+Mt(m, i) = qt(rq(mq(i) + 2m)) - 12
+
+voice pad1 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = Mt(0, j)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.4 + 0.6 sin(pi frac(t / 4))
+  gain = 0.085
+  pan = -0.3
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = Mt(1, j)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.4 + 0.6 sin(pi frac(t / 4))
+  gain = 0.08
+  pan = 0.3
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = Mt(2, j)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.4 + 0.6 sin(pi frac(t / 4))
+  gain = 0.075
+  pan = 0
+  attack = 150
+  release = 500
+  reverb = 0.45
+}
+
+# ================================================================================================= drums
+
+== maqam/kick.ball | kick | energy 3 | density 2 | mood driving strange
+# the kick is a ball (restitution 0.55): seven hits each two bars, the gaps shrinking from three and a half beats to a rattle
+Mz = (bk(Mu, 0.55) < 7)(0.5 - bph(Mu, 0.55))
+
+drum kick {
+  kind = dash
+  trigger = Mz
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== maqam/kick.half | kick | energy 1 | density 1 | mood calm groove
+# half time: the downbeat of each bar, and the and of three in the second
+Mz = ((mod(floor(2t), 16) == 0) + (mod(floor(2t), 16) == 8) + (mod(floor(2t), 16) == 13))(0.5 - frac(2t))
+
+drum kick {
+  kind = dash
+  trigger = Mz
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== maqam/clap.half | clap | energy 2 | density 1 | mood groove
+# the half-time backbeat: one clap on the third beat of each bar
+Mx = (mod(floor(t), 4) == 2)(0.5 - frac(t))
+
+drum clap {
+  kind = dash
+  trigger = Mx
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.35
+}
+
+== maqam/hat.ball | hat | energy 2 | density 3 | mood strange driving
+# the hats are a lively ball (restitution 0.85) dropped mid-phrase: twenty ticks, ever closer
+Mh = (bk(mod(t + 4, 8), 0.85) < 20)(0.5 - bph(mod(t + 4, 8), 0.85))
+
+drum hat {
+  kind = dash
+  trigger = Mh
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== maqam/hat.eighths | hat | energy 1 | density 2 | mood calm groove
+# plain eighths, the off-beats softer
+Mh = 0.5 - frac(2t)
+
+drum hat {
+  kind = dash
+  trigger = Mh
+  amp = 1 - 0.45 (mod(floor(2t), 2) == 1)
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.4
+  pan = 0.3
+}
+
+== maqam/perc.drip | perc | energy 1 | density 1 | mood strange calm
+# a drip (restitution 0.9): a slow ball of woodblock ticks drifting closer over each phrase
+My = (bk(mod(t + 2, 8), 0.9) < 14)(0.5 - bph(mod(t + 2, 8), 0.9))
+
+drum perc {
+  kind = dash
+  trigger = My
+  from = 1400
+  to = 1100
+  dash = 4
+  hold = 3
+  decay = 35
+  length = 120
+  partials = 0, -12, -20
+  rolloff = 660
+  gain = 0.5
+  pan = -0.3
+  reverb = 0.4
+}
+
+# ================================================================================================= seams
+
+== maqam/seam.drop | seam | energy 2 | density 2 | mood into-return into-peak into-intro
+# a ball dropped over the last four beats, its bounces falling down the maqam and running together at the seam
+sweep = qt(rq(14 - min(bk(2 (clamp(t, 28, 31.99) - 28), 0.7), 10)))
+
+voice rise {
+  wave = additive
+  partials = 0, -26, -10, -30
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 28)(bk(2 (clamp(t, 28, 31.99) - 28), 0.7) < 12)(0.55 - bph(2 (clamp(t, 28, 31.99) - 28), 0.7))
+  gain = 0.11
+  attack = 2
+  decay = 200
+  sustain = 0.1
+  release = 80
+  reverb = 0.4
+}
+
+== maqam/seam.roll | seam | energy 3 | density 3 | mood into-return into-strip
+# a roll that is a ball squeezed into the last two beats: ten hits, accelerating into the seam
+roll = (t >= 30)(bk(4 (clamp(t, 30, 31.99) - 30), 0.75) < 10)(0.5 - bph(4 (clamp(t, 30, 31.99) - 30), 0.75))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.35 + 0.3 (t - 30)
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 50
+  length = 160
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}

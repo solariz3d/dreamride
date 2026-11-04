@@ -1,0 +1,453 @@
+# SPECIES: DIALOGUE. Call and response between two curves, on a breathing clock, over written harmony (src/compose/book.rs).
+#
+# Two lines talk. The lead calls for two bars (a voice, its vibrato arriving late, the lead that was loved over stillness);
+# the counter-line answers for the next two with the call turned upside down (the inversion about degree 7, played a
+# call-length later), or echoes it, or a falling answer resolves a rising question. The melodies are off the grid:
+# every melodic voice reads a rubato clock v = t + 0.32 sin(tau t / 8), whose tempo breathes between 0.75 and 1.25 of
+# the beat over each two bars and comes back to the grid at every seam (v(32) = 32). Since 2026-11-03 the harmony is a
+# written progression (harmony.txt) in the song's key, and it stays on the grid (the bass and pads keep the bar while
+# the voices breathe over it): the lines sing the pentatonic of its mode, pt(d) (minor or major pentatonic through the
+# lens h), and land on a chord tone at each half bar of their own clock, ps(d, k, p). Sources: call and response in West
+# African and African-American music (Floyd 1995); the rubato curve after Todd (1992) and Friberg and Sundberg (1999).
+
+== species
+name dialogue
+title call and response between two curves, on a breathing clock, over written harmony
+tuning 12-tone equal temperament: a written progression in the song's key, the voices on the pentatonic of its mode
+meter 4/4 under rubato: v = t + 0.32 sin(tau t / 8), the tempo breathing 0.75 to 1.25
+generator a call and its inversion, echo or answer, two bars each
+harmony yes
+form call and response inside loop arcs
+timbre a voice lead with late vibrato, the pluck answering, brushes
+bpm 76 92
+weight 1.5
+open lead | pads+lead | bass+hat | counter+perc | pads | bass+lead
+
+== helpers
+v = t + 0.32 sin(tau t / 8)
+sw(a, b, u) = a + (b - a) smooth((u - 0.55) / 0.45)
+ps(d, k, p) = if(mod(k, p) == 0, sc(pt(d), floor(k / p)), pt(d))
+dw(p) = mod(p + 7, 12) - 34
+
+== frame
+pt(d) = h(7 floor(d / 5) + mod(floor(if(c < 4, 64320, 54210) / 10^mod(d, 5)), 10))
+
+# ================================================================================================= progressions
+# The progression slot holds the written progressions of harmony.txt (src/compose/harmony.rs adds them as modules).
+
+# ================================================================================================= calls (the lead)
+
+== dialogue/lead.call | lead | energy 1 | density 1 | mood voice longing | glide
+# the call: two bars of a falling and returning curve on eighths of the breathing clock, sliding into each note, the vibrato arriving late; silent while it is answered
+Dc(k) = floor(7 + 2.5 sin(tau k / 11) - 2 frac(k / 8) + 1.5 cos(tau k / 5))
+Dl = sw(ps(Dc(floor(2v)), floor(2v), 4), ps(Dc(floor(2v) + 1), floor(2v) + 1, 4), frac(2v))
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9, -22.9, -28
+  rolloff = 660
+  pitch = Dl + vibrato(note_age, 0.45, 0.5, 0.28, 5.2)
+  gate = mod(v, 16) < 7.6
+  gain = 0.19
+  pan = 0.1
+  attack = 60
+  decay = 600
+  sustain = 0.75
+  release = 400
+  reverb = 0.45
+  delay = 0.2
+}
+
+== dialogue/lead.question | lead | energy 2 | density 2 | mood bright longing | glide
+# a question: two bars climbing the pentatonic by eighths and stopping high, unresolved, sliding between the steps
+Dc(k) = 4 + floor(mod(k, 16) / 2.2) + (mod(k, 3) == 2)
+Dl = sw(ps(Dc(floor(2v)), floor(2v), 4), ps(Dc(floor(2v) + 1), floor(2v) + 1, 4), frac(2v))
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9
+  rolloff = 660
+  pitch = Dl + vibrato(note_age, 0.35, 0.4, 0.2, 5.5)
+  gate = (mod(v, 16) < 7.6)(0.92 - frac(2v))
+  gain = 0.18
+  pan = 0.1
+  attack = 25
+  decay = 400
+  sustain = 0.6
+  release = 250
+  reverb = 0.4
+  delay = 0.25
+}
+
+== dialogue/lead.sigh | lead | energy 1 | density 1 | mood voice longing | glide
+# sighs: two-note falls a step apart on the half bar, each sigh a step lower than the last, a long slide down and the vibrato late
+Dc(k) = 10 - mod(floor(k / 2), 4) - mod(k, 2)
+Dl = sw(ps(Dc(floor(v / 2)), floor(v / 2), 1), ps(Dc(floor(v / 2) + 1), floor(v / 2) + 1, 1), frac(v / 2))
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9, -22.9, -28
+  rolloff = 660
+  pitch = Dl + vibrato(note_age, 0.6, 0.6, 0.3, 5)
+  gate = (mod(v, 16) < 7.7)(0.95 - frac(v / 4))
+  gain = 0.19
+  pan = 0.05
+  attack = 80
+  decay = 700
+  sustain = 0.75
+  release = 500
+  reverb = 0.5
+  delay = 0.2
+}
+
+# ================================================================================================= answers (the counter-line)
+
+== dialogue/counter.inversion | counter | energy 1 | density 1 | mood warm calm | glide
+# the answer: the call turned upside down about degree 7 (14 - d) and played a call-length later, in the pluck
+Da(k) = 14 - floor(7 + 2.5 sin((k - 16) tau / 11) - 2 frac((k - 16) / 8) + 1.5 cos((k - 16) tau / 5))
+Du = sw(ps(Da(floor(2v)), floor(2v), 4), ps(Da(floor(2v) + 1), floor(2v) + 1, 4), frac(2v))
+
+voice counter {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = Du
+  gate = (mod(v, 16) >= 8)(mod(v, 16) < 15.6)(0.85 - frac(2v))
+  gain = 0.15
+  pan = -0.3
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.35
+  delay = 0.25
+}
+
+== dialogue/counter.echo | counter | energy 2 | density 1 | mood strange calm
+# the echo: the call repeated exactly a call-length later, an octave down, softer, as if from across a room
+Da(k) = floor(7 + 2.5 sin((k - 16) tau / 11) - 2 frac((k - 16) / 8) + 1.5 cos((k - 16) tau / 5))
+Du = ps(Da(floor(2v)), floor(2v), 4) - 12
+
+voice counter {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16
+  rolloff = 660
+  pitch = Du
+  gate = (mod(v, 16) >= 8)(mod(v, 16) < 15.6)(0.8 - frac(2v))
+  gain = 0.12
+  pan = -0.45
+  attack = 5
+  decay = 300
+  sustain = 0.4
+  release = 200
+  reverb = 0.55
+  delay = 0.3
+}
+
+== dialogue/counter.resolve | counter | energy 2 | density 2 | mood warm bright | glide
+# the resolving answer: falling by eighths from where a question stops down to the root, home in two bars
+Da(k) = max(11 - floor(mod(k, 16) / 1.8), 5)
+Du = sw(ps(Da(floor(2v)), floor(2v), 4), ps(Da(floor(2v) + 1), floor(2v) + 1, 4), frac(2v))
+
+voice counter {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = Du
+  gate = (mod(v, 16) >= 8)(mod(v, 16) < 15.6)(0.88 - frac(2v))
+  gain = 0.15
+  pan = -0.3
+  attack = 5
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.35
+  delay = 0.25
+}
+
+# ================================================================================================= basses
+
+== dialogue/bass.breath | bass | energy 1 | density 1 | mood warm calm | glide
+# the progression's bass note on the grid, half notes sliding up to the fifth (or the next chord's bass) and back over the last 45% of each
+Db(m) = if((mod(m, 2) == 1)(Hr(m) == Hr(m - 1)), sc(dw(Hr(m)) + 7, m), dw(Hr(m)))
+Dz = sw(Db(floor(t / 2)), Db(floor(t / 2) + 1), frac(t / 2))
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Dz
+  gate = 0.94 - frac(t / 2)
+  gain = 0.17
+  attack = 15
+  decay = 600
+  sustain = 0.65
+  release = 150
+}
+
+== dialogue/bass.walk | bass | energy 2 | density 2 | mood groove warm
+# a walk on the beats under the breathing voices: the bass note, the third, the fifth (a new chord at the half bar takes its own bass note), a ghost an octave up on the and of 2, and a half step under the next bar's bass on 4
+Dz = if(mod(floor(t), 4) == 3, dw(Hr(2j + 2)) - 1, sc(dw(Hr(floor(t / 2))) + 3.5 mod(floor(t), 4) (Hr(floor(t / 2)) == Hr(2j)), floor(t / 2))) + 12 (frac(t) >= 0.5)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Dz
+  gate = (0.45 - frac(t)) + (mod(t, 4) >= 1.5)(mod(t, 4) < 1.7)
+  amp = 1 - 0.6 (frac(t) >= 0.5)
+  gain = 0.17
+  attack = 4
+  decay = 300
+  sustain = 0.5
+  release = 80
+}
+
+== dialogue/bass.answer | bass | energy 3 | density 2 | mood groove driving
+# the bass speaks in the gaps: quiet under the call and the answer, a run of eighths up the chord's tones from its bass note in each phrase's last bar
+Dz = sc(dw(Hr(floor(t / 2))) + 3.5 mod(floor(2t), 4) (mod(t, 8) >= 4), floor(t / 2))
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Dz
+  gate = 0.4 - frac(2t)
+  amp = 1 - 0.7 (mod(t, 8) < 4)(mod(floor(2t), 2) == 1)
+  gain = 0.17
+  attack = 3
+  decay = 220
+  sustain = 0.5
+  release = 60
+}
+
+# ================================================================================================= pads
+
+== dialogue/pads.still | pads | energy 1 | density 1 | mood calm longing
+# stillness: the progression's voicing struck every four bars and held, barely breathing, each voice sliding to the next chord over the last tenth of a half bar
+Dp(m) = Hv(m, floor(t / 2)) + (Hv(m, floor(t / 2) + 1) - Hv(m, floor(t / 2))) smooth((frac(t / 2) - 0.9) / 0.1)
+
+voice pad1 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = Dp(0)
+  gate = 0.99 - frac(t / 16)
+  amp = 0.6 + 0.4 sin(pi frac(t / 16))
+  gain = 0.09
+  pan = -0.3
+  attack = 600
+  release = 900
+  reverb = 0.55
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = Dp(1)
+  gate = 0.99 - frac(t / 16)
+  amp = 0.6 + 0.4 sin(pi frac(t / 16))
+  gain = 0.085
+  pan = 0.3
+  attack = 600
+  release = 900
+  reverb = 0.55
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21, -23.3
+  rolloff = 660
+  pitch = Dp(2)
+  gate = 0.99 - frac(t / 16)
+  amp = 0.6 + 0.4 sin(pi frac(t / 16))
+  gain = 0.08
+  pan = 0
+  attack = 600
+  release = 900
+  reverb = 0.55
+}
+
+== dialogue/pads.breath | pads | energy 2 | density 1 | mood warm float
+# the progression's voicing struck each bar and swelling as sin^2, each voice sliding to the next chord over the last tenth of a half bar
+Dp(m) = Hv(m, floor(t / 2)) + (Hv(m, floor(t / 2) + 1) - Hv(m, floor(t / 2))) smooth((frac(t / 2) - 0.9) / 0.1)
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Dp(0)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.35 + 0.65 sin(pi frac(t / 4)) sin(pi frac(t / 4))
+  gain = 0.085
+  pan = -0.3
+  attack = 200
+  release = 600
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Dp(1)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.35 + 0.65 sin(pi frac(t / 4)) sin(pi frac(t / 4))
+  gain = 0.08
+  pan = 0.3
+  attack = 200
+  release = 600
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Dp(2)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.35 + 0.65 sin(pi frac(t / 4)) sin(pi frac(t / 4))
+  gain = 0.075
+  pan = 0
+  attack = 200
+  release = 600
+  reverb = 0.5
+}
+
+# ================================================================================================= brushes
+
+== dialogue/kick.soft | kick | energy 1 | density 1 | mood calm
+# a soft kick on the first beat of each bar of the breathing clock, so it lands early or late as the tempo breathes
+Dx = 0.5 - 4 frac(v / 4)
+
+drum kick {
+  kind = dash
+  trigger = Dx
+  from = 380
+  to = 55
+  dash = 26
+  hold = 40
+  decay = 100
+  length = 400
+  partials = 0, -24, -12, -20
+  rolloff = 660
+  gain = 0.62
+}
+
+== dialogue/kick.walk | kick | energy 2 | density 2 | mood groove
+# beat 1, the and of 2, beat 3, on the breathing clock
+Dx = ((mod(floor(2v), 8) == 0) + (mod(floor(2v), 8) == 3) + (mod(floor(2v), 8) == 4))(0.5 - frac(2v))
+
+drum kick {
+  kind = dash
+  trigger = Dx
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.66
+}
+
+== dialogue/hat.brush | hat | energy 2 | density 2 | mood groove calm
+# swung brushes: the eighths of the breathing clock, the second of each pair late and soft
+Dh = max(0.4 - frac(v), (frac(v) >= 0.67)(0.85 - frac(v)))
+
+drum hat {
+  kind = dash
+  trigger = Dh
+  amp = 0.5 + 0.5 (frac(v) < 0.5)
+  from = 7000
+  to = 4800
+  dash = 8
+  hold = 8
+  decay = 35
+  length = 140
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== dialogue/clap.rim | clap | energy 2 | density 1 | mood groove
+# a rim on 2 and 4 of the breathing clock
+Dy = (mod(floor(v), 2) == 1)(0.5 - frac(v))
+
+drum clap {
+  kind = dash
+  trigger = Dy
+  from = 1500
+  to = 900
+  dash = 5
+  hold = 4
+  decay = 40
+  length = 160
+  partials = 0, -12, -8, -18
+  rolloff = 660
+  gain = 0.45
+  reverb = 0.3
+}
+
+== dialogue/perc.knock | perc | energy 1 | density 1 | mood strange calm
+# a knock at each turn of the conversation: as the call ends and as the answer ends
+Dq = (mod(v, 8) >= 7.5)(0.5 - frac(2v))
+
+drum perc {
+  kind = dash
+  trigger = Dq
+  from = 600
+  to = 400
+  dash = 6
+  hold = 6
+  decay = 50
+  length = 180
+  partials = 0, -12, -20
+  rolloff = 660
+  gain = 0.45
+  pan = -0.3
+  reverb = 0.4
+}
+
+# ================================================================================================= seams
+
+== dialogue/seam.inhale | seam | energy 1 | density 1 | mood into-strip into-intro into-return into-peak
+# an inhale before the next phrase: a tone of the dominant two octaves up rising a fourth over the last three beats, swelling
+sweep = sc(pt(10), 15) + 5 ((clamp(t, 29, 32) - 29) / 3)^2
+
+voice rise {
+  wave = additive
+  partials = 0, -16, -24
+  rolloff = 660
+  pitch = sweep
+  gate = t >= 29
+  amp = (clamp(t, 29, 32) - 29) / 3
+  gain = 0.1
+  attack = 200
+  release = 300
+  reverb = 0.5
+}
+
+== dialogue/seam.brushroll | seam | energy 2 | density 3 | mood into-return into-peak
+# a brush roll on sixteenths over the last two beats
+roll = (t >= 30)(0.5 - frac(4t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.3 + 0.3 (t - 30)
+  from = 2200
+  to = 1200
+  dash = 6
+  hold = 4
+  decay = 40
+  length = 140
+  partials = 0, -10, -14
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.4
+}

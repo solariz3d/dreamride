@@ -1,0 +1,30 @@
+[package]
+name = "luminesce"
+version = "0.1.0"
+edition = "2021"
+description = "Music written as mathematical functions of time: expression evaluator, synthesis and WAV render (headless engine)."
+publish = false
+
+# No external crates: the engine is std-only by design (see DESIGN.md, build step 1).
+[dependencies]
+
+[lib]
+path = "src/lib.rs"
+# rlib for the tests and the CLI; cdylib is luminesce.dll, which the native world (world/) loads.
+crate-type = ["rlib", "cdylib"]
+
+[[bin]]
+name = "luminesce-render"
+path = "src/bin/luminesce-render.rs"
+
+# The tests render whole songs sample by sample; a little optimisation keeps them quick.
+[profile.test]
+opt-level = 2
+
+[[bin]]
+name = "luminesce-compose"
+path = "src/bin/luminesce-compose.rs"
+
+[[bin]]
+name = "luminesce-stream"
+path = "src/bin/luminesce-stream.rs"

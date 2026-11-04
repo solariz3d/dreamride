@@ -1,0 +1,101 @@
+# THE PROGRESSIONS: harmony written by judgment, never generated (src/compose/harmony.rs reads this).
+#
+# Written 2026-11-03, after the loops species' chord root, cycling by mod(c + m, 5) out of step with the bar, was found
+# not to sound good most of the time, and not because the sound was cheap: the progression was the problem. The one
+# generated piece judged alright (citypop_v4) ran on real functional harmony. So every 12-tone species
+# now plays one of these progressions, and its own maths writes only the melodies, rhythms and shapes on top.
+#
+# Format. `== name | mode | phrase P | energy E | density D | mood words`, one `#` line saying what it is, then the eight
+# bars of one stage: `| chord | chord chord | ... |`, one chord a bar or two (each then takes half the bar), `%` holding
+# the chord before it. The mode is the tonic's scale and the melody's: major, minor, dorian, lydian, mixolydian.
+#
+# Chords are Roman numerals on the tonic: upper case major, lower case minor; `b` and `#` move the root a half step;
+# numerals count the major scale in major, lydian and mixolydian, the natural minor in minor and dorian (so VI in minor
+# is the flat sixth). Qualities: upper case `maj7 maj9 6 69 add9 7 9 13 7b9 7#9 7sus 9sus + °`, lower case
+# `7 9 11 6 m6 maj7 ø7 °7 °`. `/3`, `/5`, `/7` put the chord's third, fifth or seventh in the bass (an inversion, written
+# on purpose). A chord ending `!` is a marked deceptive turn: it stands where the tonic was due.
+#
+# The rules every progression keeps (tests/harmony.rs proves them): it starts on the tonic and its last chord is a
+# dominant (V of any colour, V7sus, viiø7 or vii°7, the tritone substitute bII7, the backdoor bVII7), so every stage
+# seam is a cadence whatever comes next; each phrase (4 or 8 bars) ends on a dominant and the next begins on the tonic
+# unless that chord is marked `!`; chords change only on bar lines and half bars.
+
+== royal_road | major | phrase 8 | energy 2 | density 2 | mood citypop bright
+# the Royal Road, IVmaj7 V7 iii7 vi7, climbed twice from home, the second time through its secondary dominant III7, and turned home by ii9 V7
+| Imaj9 | IVmaj7 | V7 | iii7 vi7 | IVmaj7 | V7 | III7 vi7 | ii9 V7 |
+
+== marusa | minor | phrase 4 | energy 2 | density 2 | mood citypop longing
+# the marusa changes of "Just the Two of Us" (IVmaj7 III7 vi7 v7 I7 in the relative major) heard from the minor home: i9, vii7 III7, VImaj7, V7
+| i9 | vii7 III7 | VImaj7 | V7 | i9 | vii7 III7 | VImaj7 | V7b9 |
+
+== two_five_one | major | phrase 4 | energy 1 | density 1 | mood citypop calm
+# home held two bars, then ii9 V13 that leaves and returns, then the turnaround the long way round, vi9 ii9 V7sus V7
+| Imaj9 | Imaj9 | ii9 | V13 | Imaj9 | vi9 | ii9 | V7sus V7 |
+
+== three_six_two_five | major | phrase 4 | energy 2 | density 2 | mood citypop warm
+# iii7 VI7 ii9 V13 home: a chain of dominants, each chord a fifth above the next, the VI7 borrowed to point at ii
+| Imaj9 | iii7 VI7 | ii9 | V13 | Imaj9 | iii7 VI7b9 | ii9 V7sus | V7 |
+
+== borrowed_four | major | phrase 8 | energy 1 | density 1 | mood citypop longing
+# IVmaj7 iii7 vi9 falling from home, and on the way back the borrowed minor iv (ivm6) darkens the fourth before ii9 V7sus
+| Imaj9 | IVmaj7 | iii7 | vi9 | IVmaj7 | ivm6 | iii7 vi7 | ii9 V7sus |
+
+== backdoor | major | phrase 4 | energy 1 | density 2 | mood warm longing
+# the backdoor home: iv7 to bVII9 to I, the dominant borrowed from the parallel minor, its seventh the tonic's sixth
+| Imaj9 | IVmaj7 | iv7 | bVII9 | Imaj9 | vi9 | ii9 iv7 | bVII13 |
+
+== tritone | major | phrase 4 | energy 2 | density 2 | mood citypop strange
+# I VI7 ii9 and the tritone substitute bII7 in place of V, so the bass falls by half steps into home
+| Imaj9 | VI7 | ii9 | bII7 | I69 | VI7b9 | ii9 | bII9 |
+
+== turnaround | major | phrase 8 | energy 3 | density 3 | mood citypop driving
+# the city-pop turnaround two chords a bar, Imaj9 VI7 ii9 V7, then through iii and IV with their own dominants and home by V7b9
+| Imaj9 VI7 | ii9 V7 | iii7 VI7b9 | ii9 V13 | IVmaj7 III7 | vi9 II7 | ii9 V7sus | V7b9 |
+
+== minor_climb | minor | phrase 4 | energy 2 | density 2 | mood dark longing
+# i VI III VII, the climbing minor loop, sevenths on every chord, the second time home through V7b9
+| i9 | VImaj7 | IIImaj7 | VII7 | i9 | VImaj7 | IIImaj7 VII7 | V7b9 |
+
+== picardy | minor | phrase 4 | energy 1 | density 1 | mood dark falling
+# i iv v and the true V7, and at the middle the tonic turns major (a Picardy third, I69) before iv pulls it back to minor
+| i9 | iv9 | v7 | V7b9 | I69 | iv9 | v7 V7sus | V7b9 |
+
+== dorian_vamp | dorian | phrase 8 | energy 2 | density 1 | mood dark groove
+# the Dorian vamp, i9 to IV13 (the major IV is the light in it), a bar each, then out through VImaj7 and V7#9
+| i9 | IV13 | i9 | IV13 | i9 | IV13 | VImaj7 | V7#9 |
+
+== lydian_float | lydian | phrase 8 | energy 1 | density 1 | mood float bright
+# the Lydian float, Imaj9 to II6 and back (II's third is the raised fourth), then out of the mode by ii7 and V9sus V7
+| Imaj9 | II6 | Imaj9 | II6 | Imaj9 | II6 | ii7 | V9sus V7 |
+
+== line_cliche | major | phrase 8 | energy 1 | density 2 | mood warm falling
+# a chromatic line falling under the chords, I Imaj7/7 I7/7 VI7 ivm6/3 I/5 II7/3 V: the bass C B Bb A Ab G F# G in C
+| Imaj9 | Imaj7/7 | I7/7 | VI7 | ivm6/3 | I/5 | II7/3 | V7sus V7 |
+
+== descending | major | phrase 8 | energy 1 | density 1 | mood calm falling
+# the descending bass, I Imaj7/7 vi9 vi7/7 IVmaj7 I/3 ii7 V: the bass walks down the scale an octave and turns home
+| Imaj9 | Imaj7/7 | vi9 | vi7/7 | IVmaj7 | I/3 | ii7 | V7sus V7 |
+
+== deceptive | major | phrase 4 | energy 2 | density 2 | mood warm longing
+# the deceptive cadence, once in a song for colour: the first phrase's V7 lands on vi9 where home was due; the second goes home
+| Imaj9 | iii7 | IVmaj7 | V7sus V7 | vi9! | IVmaj7 | ii9 | V13 |
+
+== axis | major | phrase 8 | energy 3 | density 2 | mood bright driving
+# I V vi IV, the pop axis, its bass walking down through V in first inversion, turned home at the end by V7sus
+| Iadd9 | V/3 | vi7 | IVmaj7 | Iadd9 | V/3 | vi7 | IVmaj7 V7sus |
+
+== lofi_fall | major | phrase 8 | energy 1 | density 1 | mood calm warm
+# the lo-fi fall, Imaj9 IVmaj9 iii7 ii9, slow, then VI7b9 points back at ii and V9sus closes it
+| Imaj9 | IVmaj9 | iii7 | ii9 | Imaj9 | IVmaj9 | iii7 VI7b9 | ii9 V9sus |
+
+== deep_minor | minor | phrase 8 | energy 2 | density 1 | mood dark groove
+# i9 to iv9, the deep-house minor pair, each held two bars, then out through VImaj7 and V7#9
+| i9 | % | iv9 | % | i9 | % | VImaj7 | V7#9 |
+
+== circle | major | phrase 8 | energy 3 | density 2 | mood driving bright
+# the diatonic circle of fifths, every root a fifth below the last: Imaj9 IVmaj7 viiø7 III7b9 vi9 II9 ii9 V13, the secondary dominants pulling it home
+| Imaj9 | IVmaj7 | viiø7 | III7b9 | vi9 | II9 | ii9 | V13 |
+
+== minor_circle | minor | phrase 8 | energy 2 | density 2 | mood dark longing
+# the minor circle (the shape of Autumn Leaves), i9 iv9 VII9 IIImaj7 VImaj7 iiø7 V7b9, falling by fifths to the minor home
+| i9 | iv9 | VII9 | IIImaj7 | VImaj7 | iiø7 | V7b9 | iiø7 V7b9 |

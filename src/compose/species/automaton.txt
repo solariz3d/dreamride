@@ -1,0 +1,469 @@
+# SPECIES: AUTOMATON. An elementary cellular automaton in 5/4 over written harmony (src/compose/book.rs).
+#
+# The generator is Wolfram's elementary cellular automaton: a row of ten cells (the ten eighths of a 5/4 bar), stored
+# as the bits of an integer, stepped by Sx(x) = ca(Wr, x, 10). Each lead brings its rule (110 the one that computes,
+# 90 the Sierpinski triangle, 30 Wolfram's chaos); without a lead, rule 45, an endless variation. Row n is
+# Rw(n) = iter(Sx, Wz, n), one row a bar, counted across the whole stream by the stage clock S, so the automaton never
+# restarts at a seam. The rhythm is the cells (cl), the melody is each cell's own neighbourhood code nb (the three bits
+# the rule reads, 0 to 7) as a scale degree. Since 2026-11-03 the harmony is a written progression (harmony.txt) in
+# the song's key: the melody is pulled to a chord tone at each half bar (and at the 3+2 accent), the arpeggio and pads
+# turn the progression's voicing by the row's integer, and the basses play its bass notes. (It was whole tone, with no
+# home; a whole-tone scale cannot hold a dominant resolving to a tonic.) The meter is 5/4: ten eighths in each
+# four-beat bar, an eighth floor(5t/2). Sources: S. Wolfram, "Statistical mechanics of cellular automata", Rev. Mod.
+# Phys. 55 (1983), and A New Kind of Science (2002) for rules 30 and 110; M. Cook (2004) on rule 110.
+
+== species
+name automaton
+title an elementary cellular automaton in 5/4 on the whole-tone scale: the rule is the score
+tuning 12-tone equal temperament: a written progression in the song's key, the melody on its mode through the lens h
+meter 5/4 (ten eighths in each four-beat bar)
+generator elementary cellular automata (rules 30, 110, 90, 45), one row a bar
+harmony yes
+form loop arcs
+timbre square-ish chips, glass and dash percussion
+bpm 84 104
+weight 1
+open kick+hat | lead | bass+perc | pads+hat | perc+clap | bass+lead
+
+== helpers
+Sx(x) = ca(Wr, x, 10)
+Rw(n) = iter(Sx, Wz, n)
+rn = 8 S + floor(t / 4)
+cl(n, i) = mod(floor(Rw(n) / 2^mod(i, 10)), 2)
+nb(n, i) = 4 cl(n, i + 1) + 2 cl(n, i) + cl(n, i + 9)
+aw(p) = mod(p + 4, 12) - 40
+
+== frame
+S = 0
+Wr = 45
+Wz = 1
+
+# ================================================================================================= progressions
+# The progression slot holds the written progressions of harmony.txt (src/compose/harmony.rs adds them as modules).
+
+# ================================================================================================= leads
+
+== automaton/lead.neighbourhood | lead | energy 2 | density 2 | mood strange bright
+# rule 110, the one that computes: the melody is the rule's own input, on each live cell the scale degree numbered by the three cells the rule reads there (0 to 7) above the third, on a chord tone at each half bar
+Wr = 110
+Wz = 1
+Cn = hs(3 + nb(rn, mod(floor(2.5t), 10)), floor(2.5t), 5)
+Cg = cl(rn, mod(floor(2.5t), 10)) (0.7 - frac(2.5t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17, -120, -19
+  rolloff = 660
+  pitch = Cn
+  gate = Cg
+  gain = 0.15
+  pan = 0.1
+  attack = 3
+  decay = 220
+  sustain = 0.4
+  release = 80
+  reverb = 0.3
+  delay = 0.25
+}
+
+== automaton/lead.column | lead | energy 1 | density 1 | mood calm wander | glide
+# rule 90, the Sierpinski triangle, read down its columns: a note a quarter of the 5/4 (five a bar), the neighbourhood of every second cell as a degree, on a chord tone at the 3+2 accents, gliding the last 40% into the next
+Wr = 90
+Wz = 33
+Cz(k) = if((mod(k, 5) == 0) + (mod(k, 5) == 3), sc(h(3 + nb(8 S + floor(k / 5), 2 mod(k, 5))), 2 floor(k / 5) + (mod(k, 5) == 3)), h(3 + nb(8 S + floor(k / 5), 2 mod(k, 5))))
+Cn = Cz(floor(1.25t)) + (Cz(floor(1.25t) + 1) - Cz(floor(1.25t))) smooth((frac(1.25t) - 0.6) / 0.4)
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9
+  rolloff = 660
+  pitch = Cn
+  gate = frac(t / 8) < 0.94
+  gain = 0.18
+  pan = 0.05
+  attack = 40
+  decay = 500
+  sustain = 0.7
+  release = 300
+  reverb = 0.4
+  delay = 0.2
+}
+
+== automaton/lead.runs | lead | energy 3 | density 3 | mood driving bright
+# rule 30, Wolfram's chaos: runs of live cells as rising scales on sixteenths, each live cell climbing from the run's start, an empty cell falling back, on a chord tone at each half bar
+Wr = 30
+Wz = 1
+Cr(k) = cl(rn, floor(k / 2)) (1 + cl(rn, floor(k / 2) + 9) + cl(rn, floor(k / 2) + 8))
+Cn = hs(5 + 2 Cr(mod(floor(5t), 20)) + mod(floor(5t), 2), floor(5t), 10)
+Cg = (Cr(mod(floor(5t), 20)) > 0)(0.6 - frac(5t))
+
+voice lead {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14, -120, -17
+  rolloff = 660
+  pitch = Cn
+  gate = Cg
+  gain = 0.14
+  pan = 0.12
+  attack = 2
+  decay = 160
+  sustain = 0.3
+  release = 50
+  reverb = 0.3
+  delay = 0.25
+}
+
+# ================================================================================================= counter and arp
+
+== automaton/counter.sierpinski | counter | energy 1 | density 1 | mood calm strange
+# a second automaton beside the first, rule 90 from one cell: a bell on each live cell of its row, a scale degree per cell, on a chord tone at each half bar
+Cy(x) = ca(90, x, 10)
+Cs(n) = iter(Cy, 16, mod(n, 6))
+Cu = hs(4 + mod(floor(2.5t), 10) - 6 (mod(floor(2.5t), 10) > 5), floor(2.5t), 5)
+
+voice counter {
+  wave = additive
+  partials = 0, -22, -9, -28, -16
+  rolloff = 660
+  pitch = Cu
+  gate = mod(floor(Cs(rn) / 2^mod(floor(2.5t), 10)), 2) (0.5 - frac(2.5t))
+  gain = 0.1
+  pan = -0.35
+  attack = 2
+  decay = 400
+  sustain = 0.1
+  release = 300
+  reverb = 0.5
+}
+
+== automaton/arp.ladder | arp | energy 2 | density 3 | mood bright strange
+# the chord's ladder climbed in sixteenths, six tones from where the row's integer mod 4 says, struck only where the cell above is live
+Ca = Hc(mod(Rw(rn), 4) + mod(floor(4t), 6), floor(t / 2)) + 12
+Cb = cl(rn, floor(4t)) (0.55 - frac(4t))
+
+voice arp {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16
+  rolloff = 660
+  pitch = Ca
+  gate = Cb
+  gain = 0.1
+  pan = -0.2
+  attack = 2
+  decay = 120
+  sustain = 0.25
+  release = 60
+  reverb = 0.3
+  delay = 0.2
+}
+
+# ================================================================================================= basses
+
+== automaton/bass.rows | bass | energy 2 | density 2 | mood groove strange
+# the progression's bass note on live cells of the even eighths, an octave up where the next cell lives
+Cw = aw(Hr(floor(t / 2))) + 12 cl(rn, mod(floor(2.5t), 10) + 1)
+Cv = cl(rn, mod(floor(2.5t), 10)) (mod(floor(2.5t), 2) == 0)(0.8 - frac(2.5t))
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Cw
+  gate = Cv
+  gain = 0.17
+  attack = 4
+  decay = 300
+  sustain = 0.5
+  release = 70
+}
+
+== automaton/bass.slide | bass | energy 1 | density 1 | mood calm float | glide
+# the progression's bass notes held, sliding into the next over the last quarter of each half bar
+Cx(i) = aw(Hr(i))
+Cw = Cx(floor(t / 2)) + (Cx(floor(t / 2) + 1) - Cx(floor(t / 2))) smooth((frac(t / 2) - 0.75) / 0.25)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Cw
+  gate = 0.98 - frac(t / 4)
+  gain = 0.17
+  attack = 20
+  decay = 900
+  sustain = 0.7
+  release = 200
+}
+
+== automaton/bass.pulse | bass | energy 3 | density 3 | mood driving
+# every eighth, the bass note on each half bar, then walking the chord tones by the cell's neighbourhood (0 to 7 quarter-fifths above the bass, pulled to the chord), ghosted on dead cells
+Cw = sc(aw(Hr(floor(t / 2))) + 1.75 nb(rn, mod(floor(2.5t), 10)) (mod(floor(2.5t), 5) != 0), floor(t / 2))
+Cv = 0.6 - frac(2.5t)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Cw
+  gate = Cv
+  amp = 0.35 + 0.65 cl(rn, mod(floor(2.5t), 10))
+  gain = 0.16
+  attack = 3
+  decay = 200
+  sustain = 0.4
+  release = 50
+}
+
+# ================================================================================================= pads
+
+== automaton/pads.voiced | pads | energy 1 | density 1 | mood float strange
+# the progression's voicing, swelling over each bar, each voice sliding to the next chord over the last tenth of a half bar
+Cp(m) = Hv(m, floor(t / 2)) + (Hv(m, floor(t / 2) + 1) - Hv(m, floor(t / 2))) smooth((frac(t / 2) - 0.9) / 0.1)
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14
+  rolloff = 660
+  pitch = Cp(0)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.4 + 0.6 sin(pi frac(t / 4))
+  gain = 0.085
+  pan = -0.3
+  attack = 250
+  release = 600
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14
+  rolloff = 660
+  pitch = Cp(1)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.4 + 0.6 sin(pi frac(t / 4))
+  gain = 0.08
+  pan = 0.3
+  attack = 250
+  release = 600
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14
+  rolloff = 660
+  pitch = Cp(2)
+  gate = 0.97 - frac(t / 4)
+  amp = 0.4 + 0.6 sin(pi frac(t / 4))
+  gain = 0.075
+  pan = 0
+  attack = 250
+  release = 600
+  reverb = 0.5
+}
+
+== automaton/pads.cells | pads | energy 2 | density 2 | mood strange warm
+# the chord's voicing turned by the row (its integer mod 3 picks the lowest tone), and its tones are cells: pad m sounds while cell 3m of the row lives, struck on the bar's quarters
+Cp(m) = Hc(1 + m + mod(Rw(rn), 3), floor(t / 2))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Cp(0)
+  gate = cl(rn, 0) (0.9 - frac(1.25t))
+  gain = 0.07
+  pan = -0.3
+  attack = 15
+  decay = 400
+  sustain = 0.5
+  release = 300
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Cp(1)
+  gate = cl(rn, 3) (0.9 - frac(1.25t))
+  gain = 0.065
+  pan = 0.3
+  attack = 15
+  decay = 400
+  sustain = 0.5
+  release = 300
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Cp(2)
+  gate = cl(rn, 6) (0.9 - frac(1.25t))
+  gain = 0.06
+  pan = 0
+  attack = 15
+  decay = 400
+  sustain = 0.5
+  release = 300
+  reverb = 0.4
+}
+
+# ================================================================================================= drums (5/4)
+
+== automaton/kick.cells | kick | energy 2 | density 2 | mood groove
+# a kick on the bar's first eighth and on every live cell of an even eighth
+Ck = ((cl(rn, mod(floor(2.5t), 10)) + (mod(floor(2.5t), 10) == 0)) > 0)(mod(floor(2.5t), 2) == 0)(0.5 - frac(2.5t))
+
+drum kick {
+  kind = dash
+  trigger = Ck
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== automaton/kick.five | kick | energy 1 | density 1 | mood calm
+# the 5/4 kick plainly: the first and fourth quarters of five (3+2)
+Ck = ((mod(floor(1.25t), 5) == 0) + (mod(floor(1.25t), 5) == 3))(0.5 - frac(1.25t))
+
+drum kick {
+  kind = dash
+  trigger = Ck
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== automaton/hat.row | hat | energy 2 | density 2 | mood groove driving
+# a hat on every live cell of the row, the eighths of 5/4
+Ch = cl(rn, mod(floor(2.5t), 10)) (0.5 - frac(2.5t))
+
+drum hat {
+  kind = dash
+  trigger = Ch
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== automaton/hat.dead | hat | energy 1 | density 1 | mood calm strange
+# the negative: one long hat on every dead cell, the row's silence made audible
+Ch = (1 - cl(rn, mod(floor(2.5t), 10)))(0.6 - frac(2.5t))
+
+drum hat {
+  kind = dash
+  trigger = Ch
+  from = 7200
+  to = 5000
+  dash = 8
+  hold = 10
+  decay = 40
+  length = 150
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== automaton/clap.five | clap | energy 2 | density 1 | mood groove
+# the 5/4 backbeat: claps on the third and fifth quarters (eighths 4 and 8 of ten)
+Cc = (mod(mod(floor(2.5t), 10), 4) == 0)(mod(floor(2.5t), 10) > 0)(0.5 - frac(2.5t))
+
+drum clap {
+  kind = dash
+  trigger = Cc
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+== automaton/perc.rule90 | perc | energy 2 | density 2 | mood strange
+# a tom on the live cells of a second automaton, rule 90 from 513: two triangles growing towards each other
+Cq(x) = ca(90, x, 10)
+Ct(n) = iter(Cq, 513, mod(n, 6))
+Cd = mod(floor(Ct(rn) / 2^mod(floor(2.5t), 10)), 2) (0.5 - frac(2.5t))
+
+drum perc {
+  kind = dash
+  trigger = Cd
+  from = 300
+  to = 120
+  dash = 15
+  hold = 10
+  decay = 70
+  length = 300
+  partials = 0, -10, -18, -22
+  rolloff = 660
+  gain = 0.3
+  pan = -0.2
+  reverb = 0.25
+}
+
+# ================================================================================================= seams
+
+== automaton/seam.next | seam | energy 3 | density 3 | mood into-return into-peak into-intro
+# the next row played before it arrives: its live cells as a run up the dominant's ladder on sixteenths over the last two beats
+sweep = Hc(4 + mod(floor(4t), 8), 15)
+
+voice rise {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 30) cl(rn + 1, floor(4t)) (0.6 - frac(4t))
+  gain = 0.1
+  attack = 1
+  decay = 100
+  sustain = 0.2
+  release = 30
+  reverb = 0.4
+}
+
+== automaton/seam.roll | seam | energy 3 | density 3 | mood into-return into-strip
+# all ten cells of the bar in sixteenths over the last two beats, the live ones louder
+roll = (t >= 30)(0.5 - frac(5t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.3 + 0.5 cl(rn, floor(5t))
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 50
+  length = 160
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}

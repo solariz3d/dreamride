@@ -1,0 +1,191 @@
+# Composed by luminesce-compose, seed 7 candidate 62: a fibonacci song, grown from one generator through a scale lens.
+#
+# F(k) is Binet's formula, exact to k = 70, read modulo 8, where it repeats every 12 (its Pisano period). The chord
+# roots are F of the bar number mod 8, and the melody adds F of the step mod 8, as signed degrees. Other voices read F
+# modulo other numbers, whose periods (3, 6, 8, 12, 20) cycle against each other. The lens h is the Dorian mode
+# throughout. The lead is h(M) on every eighth, held legato and gliding into each step. A harmony doubles the lead a
+# diatonic fifth above. 4 pads stack thirds on the root, struck each bar. An arpeggio walks the chord's tones by the
+# generator, every sixteenth. The bass plays the root on every beat. The kick is on every beat. The clap is a dash on
+# 2 and 4. The hats are sixteenths, their loudness read from the generator. Form: the hand songs' shape: all in, the
+# lead from bar 5.
+# 9 definitions and 7 time names.
+
+bpm 93
+beats 64
+loop 1
+reverb_size 0.75
+reverb_predelay 23
+delay_beats 0.75
+delay_feedback 0.25
+warmth 0.2
+
+phi = (1 + sqrt(5)) / 2
+F(k) = floor(phi^k / sqrt(5) + 0.5)
+fm(k, m, P) = mod(F(mod(k, P)), m)
+sg(v) = mod(v + 4, 8) - 4
+h(d) = floor((12d + 3) / 7)
+R(i) = sg(fm(i, 8, 12))
+M(k) = R(floor(k / 8)) + sg(fm(k, 8, 12))
+lead(k) = h(M(k)) + 10
+lay(N) = mod(floor(N / 10^(3 - s)), 10)
+n = floor(4t)
+f = frac(4t)
+e = floor(2t)
+u = frac(2t)
+b = frac(t)
+j = floor(t / 4)
+s = floor(t / 16)
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = lead(e) + (lead(e + 1) - lead(e)) smooth((u - 0.75) / 0.25)
+  gate = lay(0111)(frac(t / 16) < 0.96)
+  gain = 0.21
+  pan = 0.1
+  attack = 30
+  decay = 300
+  sustain = 1
+  release = 300
+  reverb = 0.3
+  delay = 0.25
+}
+
+voice harmony {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = h(M(e) + 4) + 10 + (h(M(e + 1) + 4) - h(M(e) + 4)) smooth((u - 0.75) / 0.25)
+  gate = lay(0011)(frac(t / 16) < 0.96)
+  gain = 0.0945
+  pan = -0.25
+  attack = 8
+  decay = 300
+  sustain = 0.55
+  release = 150
+  reverb = 0.35
+}
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j)) - 14
+  gate = 0.97 - frac(t / 4)
+  gain = 0.09
+  pan = -0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 2) - 14
+  gate = 0.97 - frac(t / 4)
+  gain = 0.083
+  pan = 0.3
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 4) - 14
+  gate = 0.97 - frac(t / 4)
+  gain = 0.076
+  pan = 0
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice pad4 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13, -12, -14, -13, -15, -14, -15, -15, -16
+  rolloff = 660
+  pitch = h(R(j) + 6) - 14
+  gate = 0.97 - frac(t / 4)
+  gain = 0.069
+  pan = 0.45
+  attack = 120
+  release = 500
+  reverb = 0.4
+}
+
+voice arp {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = h(R(j) + 2 mod(fm(n, 4, 6), 4)) - 4
+  gate = lay(0111)(0.45 - f)
+  gain = 0.06
+  pan = 0.25
+  attack = 2
+  decay = 120
+  sustain = 0.3
+  release = 80
+  delay = 0.2
+}
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = h(R(j)) - 38
+  gate = 0.85 - b
+  gain = 0.27
+  attack = 3
+  decay = 250
+  sustain = 0.6
+}
+
+drum kick {
+  kind = dash
+  trigger = 0.5 - b
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.5
+}
+
+drum clap {
+  kind = dash
+  trigger = (mod(floor(t), 2) == 1)(0.5 - b)
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+drum hat {
+  kind = dash
+  trigger = 0.5 - f
+  amp = (1 + fm(n, 5, 20)) / 5
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 1.5
+  pan = 0.3
+}

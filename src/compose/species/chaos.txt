@@ -1,0 +1,463 @@
+# SPECIES: CHAOS. The logistic map near the edge of chaos, in 7/8, over written harmony (src/compose/book.rs).
+#
+# The generator is May's logistic map, x_{n+1} = r x_n (1 - x_n), written as it is: F(x) = r x * (1 - x), and the orbit
+# X(n) = iter(F, 0.3, n), the map applied n times. Each lead sets r, the regime: a period-4 cycle (3.5, the cobweb),
+# intermittency just below the period-3 window (3.8282, the orbit: long period-3 stretches broken by bursts), and full
+# chaos (3.7, the burst); without a lead, the Feigenbaum point where period doubling runs out (3.5699). The arpeggio
+# draws the bifurcation diagram itself, r sweeping 2.9 to 3.9 each bar, on the chord's tones; the counter-line is the
+# butterfly, the same map from 0.3001, peeling away from the lead. Since 2026-11-03 the harmony is a written
+# progression (harmony.txt) in the song's key: the orbit's notes land on the pentatonic of its mode, pn(d) (major or
+# minor pentatonic through the lens h), and on the 7/8's accents (eighths 0, 2 and 4 of the bar) on a tone of the chord,
+# ac(x, k, n); the basses and pads play the progression. The meter is 7/8 (2+2+3): seven eighths in each four-beat
+# bar, an eighth floor(7t/4). Sources: R. May, "Simple
+# mathematical models with very complicated dynamics", Nature 261 (1976); Feigenbaum (1978); Pomeau and Manneville
+# (1980) on intermittency.
+
+== species
+name chaos
+title the logistic map at the edge of chaos, in 7/8 on a pentatonic lens
+tuning 12-tone equal temperament: a written progression in the song's key, the melody on the pentatonic of its mode
+meter 7/8, grouped 2+2+3 (seven eighths in each four-beat bar)
+generator the logistic map x(n+1) = r x(n) (1 - x(n)), iterated
+harmony yes
+form loop arcs
+timbre plucks and glass
+bpm 110 128
+weight 1.2
+open bass+kick | lead | arp | pads+perc | hat+counter | bass+hat
+
+== helpers
+F(x) = r x * (1 - x)
+X(n) = iter(F, 0.3, n)
+ob(x, k) = mod(floor(x / 2^k), 2)
+Gi = 3 floor(t / 4) + (mod(floor(1.75t), 7) >= 2) + (mod(floor(1.75t), 7) >= 4)
+ac(x, k, n) = if((frac(7 mod(k, n) / n) == 0)(mod(7 mod(k, n) / n, 2) == 0)(7 mod(k, n) / n <= 4), sc(x, 2 floor(k / n) + (7 mod(k, n) / n >= 3.5)), x)
+lw(p) = mod(p + 4, 12) - 40
+
+== frame
+r = 3.5699
+pn(d) = h(7 floor(d / 5) + mod(floor(if(c < 4, 64320, 54210) / 10^mod(d, 5)), 10))
+
+# ================================================================================================= progressions
+# The progression slot holds the written progressions of harmony.txt (src/compose/harmony.rs adds them as modules).
+
+# ================================================================================================= leads
+
+== chaos/lead.orbit | lead | energy 2 | density 2 | mood wander strange
+# intermittency (r = 3.8282): the orbit on eighths, x mapped to pentatonic degrees 3 to 11, on a chord tone at each accent, resting where x < 0.2; the orbit restarts every four bars, so the phrase comes back
+r = 3.8282
+Ol = ac(pn(floor(3 + 9 X(mod(floor(1.75t), 28)))), floor(1.75t), 7)
+Og = (X(mod(floor(1.75t), 28)) > 0.2)(0.7 - frac(1.75t))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = Ol
+  gate = Og
+  gain = 0.17
+  pan = 0.1
+  attack = 4
+  decay = 300
+  sustain = 0.5
+  release = 120
+  reverb = 0.3
+  delay = 0.25
+}
+
+== chaos/lead.cobweb | lead | energy 1 | density 1 | mood wander calm | glide
+# the period-4 cycle (r = 3.5) read slowly, one note to each group of the 2+2+3, each on a tone of the chord, sliding into the next on the group's last eighth: the cobweb walked by ear
+r = 3.5
+Ob(g) = sc(pn(floor(4 + 7 X(g + 5))), 2 floor(g / 3) + (mod(g, 3) == 2))
+Ol = Ob(Gi) + (Ob(Gi + 1) - Ob(Gi)) ob(74, mod(floor(1.75t), 7)) smooth(frac(1.75t))
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -4.5, -15, -11, -18.4, -16.1, -22.9
+  rolloff = 660
+  pitch = Ol
+  gate = frac(t / 8) < 0.95
+  gain = 0.18
+  pan = 0.05
+  attack = 40
+  decay = 500
+  sustain = 0.7
+  release = 300
+  reverb = 0.4
+  delay = 0.2
+}
+
+== chaos/lead.burst | lead | energy 3 | density 3 | mood driving tense
+# full chaos (r = 3.7) on sixteenths where the orbit jumps: a note when x crosses 1/2 between steps, on a chord tone at each accent, an octave up when it lands above 0.85
+r = 3.7
+Ol = ac(pn(floor(4 + 6 X(mod(floor(3.5t), 56)))), floor(3.5t), 14) + 12 (X(mod(floor(3.5t), 56)) > 0.85)
+Og = ((X(mod(floor(3.5t), 56)) - 0.5) (X(mod(floor(3.5t), 56) + 1) - 0.5) < 0)(0.6 - frac(3.5t))
+
+voice lead {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16, -15, -21
+  rolloff = 660
+  pitch = Ol
+  gate = Og
+  gain = 0.16
+  pan = 0.12
+  attack = 3
+  decay = 200
+  sustain = 0.4
+  release = 80
+  reverb = 0.3
+  delay = 0.25
+}
+
+# ================================================================================================= the butterfly and the bifurcation
+
+== chaos/counter.butterfly | counter | energy 2 | density 2 | mood strange longing
+# the butterfly: the same map started from 0.3001 instead of 0.3, an octave down, on a chord tone at each accent; it shadows the orbit for a bar, then peels away
+Ox(n) = iter(F, 0.3001, n)
+Oc = ac(pn(floor(3 + 9 Ox(mod(floor(1.75t), 28)))), floor(1.75t), 7) - 12
+
+voice counter {
+  wave = additive
+  partials = 0, -9, -14.3, -18.1, -21
+  rolloff = 660
+  pitch = Oc
+  gate = (Ox(mod(floor(1.75t), 28)) > 0.2)(0.7 - frac(1.75t))
+  gain = 0.12
+  pan = -0.35
+  attack = 6
+  decay = 300
+  sustain = 0.5
+  release = 150
+  reverb = 0.4
+}
+
+== chaos/arp.bifurcation | arp | energy 3 | density 3 | mood strange driving
+# the bifurcation diagram as an arpeggio on the chord's ladder: each bar r climbs from 2.9 to 3.9 and the sixteenths play the attractor, one note, then two, four, then chaos
+Fa(x) = (2.9 + frac(t / 4)) x * (1 - x)
+Oa = Hc(floor(4 + 4.99 iter(Fa, 0.5, 48 + mod(floor(4t), 8))), floor(t / 2))
+
+voice arp {
+  wave = additive
+  partials = 0, -4, -6, -12, -10, -16
+  rolloff = 660
+  pitch = Oa
+  gate = 0.55 - frac(4t)
+  gain = 0.1
+  pan = -0.2
+  attack = 2
+  decay = 120
+  sustain = 0.25
+  release = 60
+  reverb = 0.3
+  delay = 0.2
+}
+
+# ================================================================================================= basses
+
+== chaos/bass.groups | bass | energy 2 | density 2 | mood groove driving
+# on the groups of the 2+2+3 and the pickup eighth: the bass note on the bar line, then the orbit picks the bass note, the third or the fifth of the chord, an octave pop on the pickup
+Ob2 = sc(lw(Hr(floor(t / 2))) + 3.5 floor(3 X(Gi + 9)) (mod(floor(1.75t), 7) >= 2), floor(t / 2)) + 12 (mod(floor(1.75t), 7) == 6)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Ob2
+  gate = ob(85, mod(floor(1.75t), 7)) (0.8 - frac(1.75t))
+  gain = 0.17
+  attack = 4
+  decay = 260
+  sustain = 0.5
+  release = 70
+}
+
+== chaos/bass.drift | bass | energy 1 | density 1 | mood calm wander | glide
+# a half bar at a time, the bass note on each bar line and the orbit choosing the bass note, third or fifth at each half bar, gliding over the last 30%
+Od(i) = sc(lw(Hr(i)) + 3.5 floor(2.99 X(i + 3)) mod(i, 2), i)
+Ob2 = Od(floor(t / 2)) + (Od(floor(t / 2) + 1) - Od(floor(t / 2))) smooth((frac(t / 2) - 0.7) / 0.3)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Ob2
+  gate = 0.97 - frac(t / 4)
+  gain = 0.17
+  attack = 20
+  decay = 900
+  sustain = 0.7
+  release = 200
+}
+
+== chaos/bass.spikes | bass | energy 3 | density 3 | mood driving tense
+# every eighth, the bass note, an octave up wherever the orbit is above 0.75, quiet where it is below 0.3
+Ob2 = lw(Hr(floor(t / 2))) + 12 (X(mod(floor(1.75t), 28)) > 0.75)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20, -32, -21
+  rolloff = 660
+  pitch = Ob2
+  gate = 0.6 - frac(1.75t)
+  amp = 0.45 + 0.55 (X(mod(floor(1.75t), 28)) >= 0.3)
+  gain = 0.16
+  attack = 3
+  decay = 200
+  sustain = 0.4
+  release = 50
+}
+
+# ================================================================================================= pads
+
+== chaos/pads.open | pads | energy 1 | density 1 | mood calm float
+# the progression's voicing, swelling over two bars, each voice sliding to the next chord over the last 15% of a half bar
+Op(m) = Hv(m, floor(t / 2)) + (Hv(m, floor(t / 2) + 1) - Hv(m, floor(t / 2))) smooth((frac(t / 2) - 0.85) / 0.15)
+Oq = 0.3 + 0.7 sin(pi frac(t / 8)) sin(pi frac(t / 8))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Op(0)
+  gate = 0.98 - frac(t / 8)
+  amp = Oq
+  gain = 0.085
+  pan = -0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Op(1)
+  gate = 0.98 - frac(t / 8)
+  amp = Oq
+  gain = 0.08
+  pan = 0.3
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Op(2)
+  gate = 0.98 - frac(t / 8)
+  amp = Oq
+  gain = 0.075
+  pan = 0
+  attack = 300
+  release = 700
+  reverb = 0.5
+}
+
+== chaos/pads.orbit | pads | energy 2 | density 2 | mood strange warm
+# the chord's voicing turned by the orbit: each bar x chooses which of its tones is lowest (an inversion of the voicing), struck on the bar's groups
+Op(m) = Hc(1 + m + floor(3 X(j + 20)), floor(t / 2))
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Op(0)
+  gate = ob(21, mod(floor(1.75t), 7)) (0.9 - frac(1.75t / 2))
+  gain = 0.07
+  pan = -0.3
+  attack = 20
+  decay = 400
+  sustain = 0.5
+  release = 300
+  reverb = 0.4
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Op(1)
+  gate = ob(21, mod(floor(1.75t), 7)) (0.9 - frac(1.75t / 2))
+  gain = 0.065
+  pan = 0.3
+  attack = 20
+  decay = 400
+  sustain = 0.5
+  release = 300
+  reverb = 0.4
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = Op(2)
+  gate = ob(21, mod(floor(1.75t), 7)) (0.9 - frac(1.75t / 2))
+  gain = 0.06
+  pan = 0
+  attack = 20
+  decay = 400
+  sustain = 0.5
+  release = 300
+  reverb = 0.4
+}
+
+# ================================================================================================= drums (7/8)
+
+== chaos/kick.groups | kick | energy 2 | density 1 | mood groove
+# the 7/8 kick: eighths 1 and 5 of seven, the start of the first 2 and of the 3 (the bits of 17)
+Ok = ob(17, mod(floor(1.75t), 7)) (0.5 - frac(1.75t))
+
+drum kick {
+  kind = dash
+  trigger = Ok
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+== chaos/kick.orbit | kick | energy 3 | density 2 | mood driving tense
+# on every group start, and wherever the orbit is above 0.9
+Ok = ((ob(21, mod(floor(1.75t), 7)) + (X(mod(floor(1.75t), 28)) > 0.9)) > 0)(0.5 - frac(1.75t))
+
+drum kick {
+  kind = dash
+  trigger = Ok
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.66
+}
+
+== chaos/hat.orbit | hat | energy 2 | density 2 | mood groove
+# every eighth, as loud as the orbit is high
+Oh = 0.5 - frac(1.75t)
+
+drum hat {
+  kind = dash
+  trigger = Oh
+  amp = 0.25 + 0.75 X(mod(floor(1.75t), 28))
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.6
+  pan = 0.3
+}
+
+== chaos/hat.sparse | hat | energy 1 | density 1 | mood calm
+# one long hat on the last eighth of each group, the breath before the next
+Oh = ob(74, mod(floor(1.75t), 7)) (0.6 - frac(1.75t))
+
+drum hat {
+  kind = dash
+  trigger = Oh
+  from = 7400
+  to = 5000
+  dash = 8
+  hold = 10
+  decay = 40
+  length = 160
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.8
+  pan = 0.3
+}
+
+== chaos/clap.three | clap | energy 2 | density 1 | mood groove
+# the clap on the five of seven, where the long group starts (the bits of 16)
+Oz = ob(16, mod(floor(1.75t), 7)) (0.5 - frac(1.75t))
+
+drum clap {
+  kind = dash
+  trigger = Oz
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.3
+}
+
+== chaos/perc.spike | perc | energy 2 | density 1 | mood strange
+# a high rim wherever the orbit lands above 0.86 on a sixteenth: rare, unpredictable, never random
+Os = (X(mod(floor(3.5t), 56)) > 0.86)(0.5 - frac(3.5t))
+
+drum perc {
+  kind = dash
+  trigger = Os
+  from = 1800
+  to = 1300
+  dash = 4
+  hold = 3
+  decay = 25
+  length = 100
+  partials = 0, -12, -8, -20
+  rolloff = 660
+  gain = 0.6
+  pan = -0.25
+  reverb = 0.2
+}
+
+# ================================================================================================= seams
+
+== chaos/seam.bifurcate | seam | energy 3 | density 3 | mood into-return into-peak into-intro
+# the last four beats sweep r from 3 to 4 and play the attractor on sixteenths, on the dominant's tones: order splitting into chaos
+Fs(x) = (3 + (clamp(t, 28, 32) - 28) / 4) x * (1 - x)
+sweep = sc(pn(floor(3 + 9 iter(Fs, 0.5, 40 + mod(floor(4t), 4)))), 15)
+
+voice rise {
+  wave = additive
+  partials = 0, -6, -9, -12
+  rolloff = 660
+  pitch = sweep
+  gate = (t >= 28)(0.6 - frac(4t))
+  gain = 0.1
+  attack = 1
+  decay = 100
+  sustain = 0.2
+  release = 30
+  reverb = 0.4
+}
+
+== chaos/seam.roll | seam | energy 3 | density 3 | mood into-return into-strip
+# sixteenths of the 7/8 over the last bar, louder towards the seam
+roll = (t >= 28)(0.5 - frac(3.5t))
+
+drum fill {
+  kind = dash
+  trigger = roll
+  amp = 0.3 + 0.17 (t - 28)
+  from = 320
+  to = 110
+  dash = 12
+  hold = 4
+  decay = 50
+  length = 160
+  partials = 0, -12, -9, -18
+  rolloff = 660
+  gain = 0.45
+  pan = -0.15
+  reverb = 0.3
+}
