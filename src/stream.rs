@@ -1153,6 +1153,10 @@ pub fn save_text(stages: &[Stage], roster: &[String], origin: &str, seed: u64) -
         (2..).map(|k| format!("{base}{k}")).find(|n| !taken.contains(n)).expect("a free name")
     };
     let q = fresh("Q");
+    // Each stage's time is T_i, unless a stage-local definition is itself named T: renamed T_i, it would collide
+    // (found 2026-11-05 on a lens stretch; tests/stream.rs `every_lens_stretch_saves`).
+    let local_t = stages.iter().any(|st| st.eq.defs.iter().any(|d| d.name == "T" && !shared.contains(&d.name)));
+    let tb = if local_t { fresh("T") } else { "T".to_string() };
     let mut text = format!(
         "# Saved from a Dreamride stream (from {origin}, seed {seed}): stages {} to {}, {} bars.\n#\n",
         stages[0].index + 1,
@@ -1162,7 +1166,7 @@ pub fn save_text(stages: &[Stage], roster: &[String], origin: &str, seed: u64) -
     for s in stages {
         text += &format!("# Stage {}: {}.\n", s.index + 1, s.summary);
     }
-    text += &format!("#\n# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; {q} = floor(t / 32) picks the stage.\n\n");
+    text += &format!("#\n# Each stage's definitions carry its number (M_0, M_1, ...) and its own time {tb}_i = t - 32 i; {q} = floor(t / 32) picks the stage.\n\n");
     for st in &last.eq.settings {
         text += st;
         text += "\n";
@@ -1176,7 +1180,7 @@ pub fn save_text(stages: &[Stage], roster: &[String], origin: &str, seed: u64) -
     }
     let mut maps = Vec::new();
     for (i, s) in stages.iter().enumerate() {
-        let time = format!("T_{i}");
+        let time = format!("{tb}_{i}");
         lines.push(format!("{time} = t - {}", 32 * i));
         let map: HashMap<String, String> =
             s.eq.defs.iter().filter(|d| !shared.contains(&d.name)).map(|d| (d.name.clone(), format!("{}_{i}", d.name))).collect();

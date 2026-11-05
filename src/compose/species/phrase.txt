@@ -1,0 +1,307 @@
+# SPECIES: PHRASE. Music built top-down from the research (docs/what_makes_music_bad.md, docs/implementing_theory.md).
+#
+# Every other species is built bottom-up: each part is its own function of time (a fractal, an automaton, a ball) and
+# no part knows where it is. This one starts from form. A stage is one eight-bar phrase, and the written progressions
+# already cadence at every seam (harmony.txt: each phrase ends on a dominant). A song draws ONE motif, a two-bar idea
+# (`Mn`, drawn per song like the key): its rhythm is one of four written figures and its contour is a blancmange read
+# on the position inside the two bars, so the idea recurs (Margulis; Dai, Zhang & Dannenberg 2022: songs repeat their
+# own small vocabulary). Every lead develops that same idea in a classical phrase form (Caplin): the sentence (idea,
+# idea again, fragmentation, a run down, cadence), the period (two halves that each close), or an answer that leaves
+# room. A new melody in the stream is a new treatment of the song's idea, never a new idea. Strong-beat notes are chord
+# tones, the line stays in a bounded range and returns (von Hippel & Huron), and every phrase ends with a held cadence
+# and a breath. The other parts read the structure, not only the clock: the bass holds a pedal while the chords still
+# contain it and approaches each chord change by a half step (the pedal won its blind A/B on 2026-11-05); the pads
+# strike only when the chord changes; the kick keeps beats 1 and 3 with one syncopation every other bar (Witek et al.
+# 2014: medium syncopation) and drops out on the phrase's last beat; the open hat speaks only where a phrase ends. Not
+# drawn by a species seed or a turn (`draw no`): it is reached by name until a generator version takes it in, so no
+# existing seed changes.
+== species
+name phrase
+title music built top-down: one motif a song, developed in eight-bar phrases that cadence, every part reading the form
+tuning 12-tone equal temperament: a written progression in the song's key, cadencing at every seam
+meter 4/4, eight-bar phrases
+generator one two-bar motif a song (a written rhythm, a blancmange contour), developed by phrase form
+harmony yes
+form each stage a phrase (sentence, period or answer), the motif kept through the song
+timbre a sung-sounding lead, held pads, a round bass, noise drums
+bpm 96 118
+weight 1
+draw no
+open pads+lead | bass+kick | lead | pads+hat | bass+lead
+
+== frame
+Mn = 0
+
+== helpers
+tri(v) = abs(v - floor(v + 0.5))
+T(u) = tri(u) + 0.5 tri(2u) + 0.25 tri(4u) + 0.125 tri(8u) + 0.0625 tri(16u)
+lo(p) = mod(p + 4, 12) - 40
+Pr = if(mod(Mn, 4) == 0, 100012901010001, if(mod(Mn, 4) == 1, 120120100100123, if(mod(Mn, 4) == 2, 123010101234590, 10101239999)))
+Pa(x) = hd(Pr, mod(x, 16))
+Pc(s) = 5 + floor(4 T((s + Mn) / 16) + 2.5 T((s + 3 Mn) / 4))
+Pq(i) = Hr(4 floor(i / 4))
+Ph(p, i) = (mod(p - Hr(i), 12) == 0) + (mod(p - Hv(0, i), 12) == 0) + (mod(p - Hv(1, i), 12) == 0) + (mod(p - Hv(2, i), 12) == 0)
+
+# ================================================================================================= progressions
+# The progression slot holds the written progressions of harmony.txt (src/compose/harmony.rs adds them as modules).
+
+# ================================================================================================= leads: one motif, three forms
+
+== phrase/lead.sentence | lead | energy 2 | density 2 | mood voice bright
+# the sentence: the idea (bars 1-2), the idea again on the chords now sounding (3-4), its first bar twice and a step higher (5-6), a run down to the cadence (7), the cadence held on the dominant's chord tone, then a breath (8)
+Pb = floor(t / 4)
+Px = if(Pb >= 4, mod(floor(2t), 8), mod(floor(2t), 16))
+Ps = Px - Pa(Px)
+Pd = if(Pb == 7, Pc(0), if(Pb == 6, Pc(0) + 4 - floor(mod(t, 4)), Pc(Ps) + (Pb == 5)))
+Pl = if(Pb == 7, sc(h(Pd), 15), if(Pb == 6, if(mod(floor(t), 2) == 0, sc(h(Pd), floor(t / 2)), h(Pd)), if(mod(Ps, 2) == 0, sc(h(Pd), floor((floor(2t) - Pa(Px)) / 4)), h(Pd))))
+Pg = if(Pb == 7, mod(t, 4) < 2.5, if(Pb == 6, frac(t) < 0.85, (Pa(Px) != 9) (1 - (Pa(Px + 1) == 0) (frac(2t) > 0.85))))
+
+voice lead {
+  wave = additive
+  partials = 0, -8, -14, -20, -24, -29, -33, -37
+  rolloff = 660
+  pitch = Pl
+  gate = Pg
+  gain = 0.15
+  pan = 0.05
+  attack = 12
+  decay = 350
+  sustain = 0.7
+  release = 180
+  reverb = 0.35
+  delay = 0.2
+}
+
+== phrase/lead.period | lead | energy 2 | density 2 | mood voice warm
+# the period: the idea and a half cadence held (bars 1-4), the idea again and a run down to the full cadence (5-8); two halves that each close
+Pb = floor(t / 4)
+Px = mod(floor(2t), 16)
+Ps = Px - Pa(Px)
+Pe = mod(Pb, 4) == 3
+Pd = if(Pe, Pc(0) + 2 (Pb == 3), if(Pb == 6, Pc(0) + 4 - floor(mod(t, 4)), Pc(Ps)))
+Pl = if(Pe, sc(h(Pd), 2 Pb + 1), if(Pb == 6, if(mod(floor(t), 2) == 0, sc(h(Pd), floor(t / 2)), h(Pd)), if(mod(Ps, 2) == 0, sc(h(Pd), floor((floor(2t) - Pa(Px)) / 4)), h(Pd))))
+Pg = if(Pe, mod(t, 4) < 2.5, if(Pb == 6, frac(t) < 0.85, (Pa(Px) != 9) (1 - (Pa(Px + 1) == 0) (frac(2t) > 0.85))))
+
+voice lead {
+  wave = additive
+  partials = 0, -8, -14, -20, -24, -29, -33, -37
+  rolloff = 660
+  pitch = Pl
+  gate = Pg
+  gain = 0.15
+  pan = 0.05
+  attack = 12
+  decay = 350
+  sustain = 0.7
+  release = 180
+  reverb = 0.35
+  delay = 0.2
+}
+
+== phrase/lead.answer | lead | energy 1 | density 1 | mood voice calm
+# the idea, then two bars of rest for the counter to answer in (3-4), the idea a third higher (5-6), a run down and the cadence (7-8): a line that leaves room
+Pb = floor(t / 4)
+Px = mod(floor(2t), 16)
+Ps = Px - Pa(Px)
+Pd = if(Pb == 7, Pc(0), if(Pb == 6, Pc(0) + 4 - floor(mod(t, 4)), Pc(Ps) + 2 (Pb >= 4)))
+Pl = if(Pb == 7, sc(h(Pd), 15), if(Pb == 6, if(mod(floor(t), 2) == 0, sc(h(Pd), floor(t / 2)), h(Pd)), if(mod(Ps, 2) == 0, sc(h(Pd), floor((floor(2t) - Pa(Px)) / 4)), h(Pd))))
+Pg = (mod(Pb, 4) < 2 + 2 (Pb >= 4)) if(Pb == 7, mod(t, 4) < 2.5, if(Pb == 6, frac(t) < 0.85, (Pa(Px) != 9) (1 - (Pa(Px + 1) == 0) (frac(2t) > 0.85))))
+
+voice lead {
+  wave = additive
+  partials = 0, -8, -14, -20, -24, -29, -33, -37
+  rolloff = 660
+  pitch = Pl
+  gate = Pg
+  gain = 0.15
+  pan = 0.05
+  attack = 12
+  decay = 350
+  sustain = 0.7
+  release = 180
+  reverb = 0.35
+  delay = 0.2
+}
+
+# ================================================================================================= the counter
+
+== phrase/counter.guide | counter | energy 1 | density 1 | mood warm calm
+# guide tones: the pads' middle voice held under the lead, struck again only when it moves, so the counter-line is the harmony's own inner voice
+Pu = Hv(1, floor(t / 2))
+
+voice counter {
+  wave = additive
+  partials = 0, -10, -18, -24, -30
+  rolloff = 660
+  pitch = Pu
+  gate = 1 - (Hv(1, floor(t / 2)) != Hv(1, floor(t / 2) - 1)) (frac(t / 2) < 0.03)
+  gain = 0.07
+  pan = -0.3
+  attack = 60
+  decay = 600
+  sustain = 0.6
+  release = 300
+  reverb = 0.4
+}
+
+# ================================================================================================= bass: aware of the progression
+
+== phrase/bass.pedal | bass | energy 2 | density 2 | mood warm groove
+# eighths on the root the phrase's two bars began on, held while the chord still contains it (a pedal), else the chord's root; the last eighth before a change approaches the next root from a half step below
+Pz = if((Hr(floor(t / 2) + 1) != Hr(floor(t / 2))) (frac(t / 2) >= 0.875), lo(Hr(floor(t / 2) + 1)) - 1, if(Ph(Pq(floor(t / 2)), floor(t / 2)) > 0, lo(Pq(floor(t / 2))), lo(Hr(floor(t / 2)))))
+
+voice bass {
+  wave = additive
+  partials = 0, -6, -14, -20, -26
+  rolloff = 660
+  pitch = Pz
+  gate = 0.8 - frac(2t)
+  gain = 0.16
+  attack = 4
+  decay = 220
+  sustain = 0.6
+  release = 70
+}
+
+== phrase/bass.root | bass | energy 2 | density 2 | mood groove driving
+# the root in a 3-3-2 figure (beat 1, the and of 2, beat 4), up an octave on the last; a half step below the next root just before each change
+Py = mod(floor(2t), 8)
+Pz = if((Hr(floor(t / 2) + 1) != Hr(floor(t / 2))) (frac(t / 2) >= 0.875), lo(Hr(floor(t / 2) + 1)) - 1, lo(Hr(floor(t / 2))) + 12 (Py == 6))
+
+voice bass {
+  wave = additive
+  partials = 0, -6, -14, -20, -26
+  rolloff = 660
+  pitch = Pz
+  gate = ((Py == 0) + (Py == 3) + (Py == 6) + (Py == 7) > 0) (0.85 - frac(2t))
+  gain = 0.17
+  attack = 4
+  decay = 260
+  sustain = 0.6
+  release = 80
+}
+
+# ================================================================================================= pads
+
+== phrase/pads.held | pads | energy 1 | density 1 | mood warm calm
+# the progression's voicing held, each voice struck again only when it moves
+
+voice pad1 {
+  wave = additive
+  partials = 0, -7, -13, -18, -22, -26
+  rolloff = 660
+  pitch = Hv(0, floor(t / 2))
+  gate = 1 - (Hv(0, floor(t / 2)) != Hv(0, floor(t / 2) - 1)) (frac(t / 2) < 0.03)
+  gain = 0.05
+  attack = 300
+  decay = 800
+  sustain = 0.8
+  release = 600
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -7, -13, -18, -22, -26
+  rolloff = 660
+  pitch = Hv(1, floor(t / 2))
+  gate = 1 - (Hv(1, floor(t / 2)) != Hv(1, floor(t / 2) - 1)) (frac(t / 2) < 0.03)
+  gain = 0.045
+  attack = 300
+  decay = 800
+  sustain = 0.8
+  release = 600
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -7, -13, -18, -22, -26
+  rolloff = 660
+  pitch = Hv(2, floor(t / 2))
+  gate = 1 - (Hv(2, floor(t / 2)) != Hv(2, floor(t / 2) - 1)) (frac(t / 2) < 0.03)
+  gain = 0.04
+  attack = 300
+  decay = 800
+  sustain = 0.8
+  release = 600
+  reverb = 0.5
+}
+
+# ================================================================================================= drums: aware of the phrase
+
+== phrase/kick.anchor | kick | energy 2 | density 2 | mood groove
+# beats 1 and 3 always, the and of 2 in every second bar (one syncopation), and silent on the phrase's last beat so the cadence breathes
+Pk = mod(floor(2t), 8)
+Pkk = (t < 30) ((Pk == 0) + (Pk == 4) + (Pk == 3) (mod(floor(t / 4), 2) == 1) > 0) (0.5 - frac(2t))
+
+drum kick {
+  kind = kick
+  trigger = Pkk
+  gain = 0.7
+}
+
+== phrase/kick.four | kick | energy 3 | density 2 | mood driving
+# four on the floor, out for the phrase's last beat
+Pkk = (t < 31) (0.5 - frac(t))
+
+drum kick {
+  kind = kick
+  trigger = Pkk
+  gain = 0.7
+}
+
+== phrase/hat.eighths | hat | energy 2 | density 2 | mood groove
+# a noise hat every eighth, the off-beats louder
+Pt = 0.5 - frac(2t)
+
+drum hat {
+  kind = hat
+  trigger = Pt
+  amp = 0.45 + 0.25 (mod(floor(2t), 2) == 1)
+  decay = 40
+  length = 90
+  gain = 2.4
+  pan = 0.25
+}
+
+== phrase/clap.back | clap | energy 2 | density 1 | mood groove
+# the backbeat, 2 and 4
+Px2 = (mod(floor(t), 2) == 1) (0.5 - frac(t))
+
+drum clap {
+  kind = snare
+  trigger = Px2
+  length = 200
+  gain = 0.45
+  reverb = 0.25
+}
+
+== phrase/perc.open | perc | energy 1 | density 1 | mood bright
+# an open hat on the and of 4 where a half phrase ends (bar 4) and where the phrase ends (bar 8): the only places the form opens up
+Po = ((floor(t / 4) == 3) + (floor(t / 4) == 7) > 0) (mod(floor(2t), 8) == 7) (0.5 - frac(2t))
+
+drum perc {
+  kind = hat
+  trigger = Po
+  decay = 280
+  length = 450
+  gain = 2.0
+  pan = -0.2
+}
+
+# ================================================================================================= seams
+
+== phrase/seam.roll | seam | energy 3 | density 3 | mood into-return into-peak into-strip
+# a snare roll on sixteenths through the phrase's last beat, rising into the next phrase
+roll = (t >= 31) (0.5 - frac(4t))
+
+drum fill {
+  kind = snare
+  trigger = roll
+  amp = 0.4 + 0.5 (t - 31)
+  length = 120
+  gain = 0.35
+  pan = -0.15
+  reverb = 0.2
+}

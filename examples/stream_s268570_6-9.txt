@@ -1,0 +1,181 @@
+# Saved from a Dreamride stream (from the maqam species, seed 268570, seed 268570): stages 6 to 9, 32 bars.
+#
+# Stage 6: breakdown: only the bass and pads; the bass takes maqam/bass.pendulum.
+# Stage 7: turn: the pads take maqam/pads.neutral; into the seam, maqam/seam.drop.
+# Stage 8: return: the drop: the kick, lead, hat and clap return; the melody moves up an octave; into the seam, maqam/seam.drop.
+# Stage 9: intro: it thins to the bass, pads and lead; a new melody, maqam/lead.pendulum; the bass takes maqam/bass.ball.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 128
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 128
+
+Q = floor(t / 32)
+qt(k) = Mk + k / 2
+rq(d) = 24 floor(d / 7) + mod(floor(Mr / 100^mod(d, 7)), 100)
+mq(i) = mod(floor(Mn / 10^(7 - mod(i, 8))), 10)
+Mr = 20161410060300
+Mk = -7
+Mn = 553304
+T_0 = t - 0
+Mp_0 = qt(rq(mq(j_0))) - 24 + 3.5 - 3.5 cos(tau T_0 / 8)
+Mt_0(m, i) = qt(rq(mq(i) + 2m)) - 12
+j_0 = floor(T_0 / 4)
+T_1 = t - 32
+bk_1(u, e) = floor(log2(1 - min(u, 7.99) / 8) / log2(e))
+bph_1(u, e) = (u - 8 + 8 e^bk_1(u, e)) / (8 (1 - e) e^bk_1(u, e))
+Mp_1 = qt(rq(mq(j_1))) - 24 + 3.5 - 3.5 cos(tau T_1 / 8)
+Mt_1(m, i) = qt(rq(mq(i)) + 7m) - 12
+sweep_1 = qt(rq(14 - min(bk_1(2 (clamp(T_1, 28, 31.99) - 28), 0.7), 10)))
+j_1 = floor(T_1 / 4)
+T_2 = t - 64
+bk_2(u, e) = floor(log2(1 - min(u, 7.99) / 8) / log2(e))
+bph_2(u, e) = (u - 8 + 8 e^bk_2(u, e)) / (8 (1 - e) e^bk_2(u, e))
+Ms_2(k) = 9 + mod(3k, 7) - 2 (mod(k, 5) == 4)
+Mb_2 = qt(rq(Ms_2(floor(2T_2)))) + 3 (1 - 2 mod(floor(2T_2), 2)) * 2^(-12 frac(2T_2)) cos(1.5 tau frac(2T_2)) + 12
+Mp_2 = qt(rq(mq(j_2))) - 24 + 3.5 - 3.5 cos(tau T_2 / 8)
+Mt_2(m, i) = qt(rq(mq(i)) + 7m) - 12
+Mz_2 = ((mod(floor(2T_2), 16) == 0) + (mod(floor(2T_2), 16) == 8) + (mod(floor(2T_2), 16) == 13))(0.5 - frac(2T_2))
+Mh_2 = 0.5 - frac(2T_2)
+Mx_2 = (mod(floor(T_2), 4) == 2)(0.5 - frac(T_2))
+sweep_2 = qt(rq(14 - min(bk_2(2 (clamp(T_2, 28, 31.99) - 28), 0.7), 10)))
+j_2 = floor(T_2 / 4)
+T_3 = t - 96
+bk_3(u, e) = floor(log2(1 - min(u, 7.99) / 8) / log2(e))
+bph_3(u, e) = (u - 8 + 8 e^bk_3(u, e)) / (8 (1 - e) e^bk_3(u, e))
+Mu_3 = mod(T_3, 8)
+Mb_3 = qt(rq(9)) + 3.5 cos(tau T_3 / 4) * 2^(-mod(T_3, 16) / 6)
+Mp_3 = qt(rq(mq(j_3))) - 24 + 12 (bk_3(Mu_3, 0.6) >= 3)
+Mt_3(m, i) = qt(rq(mq(i)) + 7m) - 12
+j_3 = floor(T_3 / 4)
+
+voice bass {
+  wave = additive
+  partials = -11, 0, -26, -12, -28, -20
+  rolloff = 660
+  pitch = if(Q == 0, Mp_0, if(Q == 1, Mp_1, if(Q == 2, Mp_2, Mp_3)))
+  gate = if(Q == 0, 0.85 - frac(T_0), if(Q == 1, 0.85 - frac(T_1), if(Q == 2, 0.85 - frac(T_2), (bk_3(Mu_3, 0.6) < 9)(0.6 - bph_3(Mu_3, 0.6)))))
+  gain = 0.18
+  attack = 3
+  decay = 260
+  sustain = 0.5
+  release = 60
+}
+
+voice pad1 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = if(Q == 0, Mt_0(0, j_0), if(Q == 1, Mt_1(0, j_1), if(Q == 2, Mt_2(0, j_2), Mt_3(0, j_3))))
+  gate = if(Q == 0, 0.97 - frac(T_0 / 4), if(Q == 1, 0.98 - frac(T_1 / 8), if(Q == 2, 0.98 - frac(T_2 / 8), 0.98 - frac(T_3 / 8))))
+  gain = 0.09
+  pan = -0.3
+  attack = 200
+  release = 700
+  reverb = 0.5
+}
+
+voice pad2 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = if(Q == 0, Mt_0(1, j_0), if(Q == 1, Mt_1(1, j_1), if(Q == 2, Mt_2(1, j_2), Mt_3(1, j_3))))
+  gate = if(Q == 0, 0.97 - frac(T_0 / 4), if(Q == 1, 0.98 - frac(T_1 / 8), if(Q == 2, 0.98 - frac(T_2 / 8), 0.98 - frac(T_3 / 8))))
+  gain = 0.085
+  pan = 0.3
+  attack = 200
+  release = 700
+  reverb = 0.5
+}
+
+voice pad3 {
+  wave = additive
+  partials = 0, -12, -5, -11, -9, -12, -11, -13
+  rolloff = 660
+  pitch = if(Q == 0, Mt_0(2, j_0), if(Q == 1, Mt_1(2, j_1), if(Q == 2, Mt_2(2, j_2), Mt_3(2, j_3))))
+  gate = if(Q == 0, 0.97 - frac(T_0 / 4), if(Q == 1, 0.98 - frac(T_1 / 8), if(Q == 2, 0.98 - frac(T_2 / 8), 0.98 - frac(T_3 / 8))))
+  gain = 0.08
+  pan = 0
+  attack = 200
+  release = 700
+  reverb = 0.5
+}
+
+voice lead {
+  wave = additive
+  partials = 0, -16, -24, -32
+  rolloff = 660
+  pitch = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, Mb_2, Mb_3)))
+  gate = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 0.7 - frac(2T_2), frac(T_3 / 16) < 0.95)))
+  gain = 0.2
+  pan = 0.05
+  attack = 120
+  decay = 800
+  sustain = 0.75
+  release = 500
+  reverb = 0.5
+  delay = 0.2
+}
+
+drum kick {
+  kind = dash
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, Mz_2, 0)))
+  from = 450
+  to = 58
+  dash = 23
+  hold = 40
+  decay = 90
+  length = 380
+  partials = 0, -24, -12, -20, -19
+  rolloff = 660
+  gain = 0.68
+}
+
+drum clap {
+  kind = dash
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, Mx_2, 0)))
+  from = 820
+  to = 190
+  dash = 9
+  hold = 6
+  decay = 55
+  length = 260
+  partials = 0, -18, -9, -16, -15, -21, -21, -25
+  rolloff = 660
+  gain = 0.4
+  reverb = 0.35
+}
+
+drum hat {
+  kind = dash
+  trigger = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, Mh_2, 0)))
+  amp = if(Q == 0, 0, if(Q == 1, 0, if(Q == 2, 1 - 0.45 (mod(floor(2T_2), 2) == 1), 0)))
+  from = 7600
+  to = 5400
+  dash = 5
+  decay = 12
+  length = 70
+  partials = 0, -10
+  rolloff = 660
+  gain = 2.4
+  pan = 0.3
+}
+
+voice rise {
+  wave = additive
+  partials = 0, -26, -10, -30
+  rolloff = 660
+  pitch = if(Q == 0, 0, if(Q == 1, sweep_1, if(Q == 2, sweep_2, 0)))
+  gate = if(Q == 0, 0, if(Q == 1, (T_1 >= 28)(bk_1(2 (clamp(T_1, 28, 31.99) - 28), 0.7) < 12)(0.55 - bph_1(2 (clamp(T_1, 28, 31.99) - 28), 0.7)), if(Q == 2, (T_2 >= 28)(bk_2(2 (clamp(T_2, 28, 31.99) - 28), 0.7) < 12)(0.55 - bph_2(2 (clamp(T_2, 28, 31.99) - 28), 0.7)), 0)))
+  gain = 0.11
+  attack = 2
+  decay = 200
+  sustain = 0.1
+  release = 80
+  reverb = 0.4
+}

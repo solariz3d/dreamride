@@ -23,7 +23,7 @@ pub const BOOK_TEXT: &str = include_str!("book.txt");
 /// Every species' book, in order: the lens first, then the species written on 2026-11-03 after every stream's
 /// function was found to look nearly the same (`src/compose/species/`). Each is a book in the same
 /// format with its own helpers, frame and modules, so its equation is its own (see [`Species`]).
-pub const SPECIES_TEXTS: [&str; 10] = [
+pub const SPECIES_TEXTS: [&str; 11] = [
     BOOK_TEXT,
     include_str!("species/ratios.txt"),
     include_str!("species/chaos.txt"),
@@ -34,6 +34,7 @@ pub const SPECIES_TEXTS: [&str; 10] = [
     include_str!("species/oneline.txt"),
     include_str!("species/dialogue.txt"),
     include_str!("species/maqam.txt"),
+    include_str!("species/phrase.txt"),
 ];
 
 /// What a module fills.
@@ -138,6 +139,10 @@ pub struct Species {
     pub harmony: bool,
     /// Behind the Explore option (strange tunings): never chosen by the default stream.
     pub explore: bool,
+    /// Drawn by a species seed and by a stream's species turn (`draw no`: reached only by name). A species added after
+    /// seeds were saved is `draw no` until a generator version takes it in, so no existing seed lands somewhere new
+    /// (2026-11-05, the phrase species).
+    pub drawn: bool,
 }
 
 /// The whole book: its species, the shared helpers, the frame (the tuning), and the modules in the order written.
@@ -212,7 +217,7 @@ fn parse_body(lines: &[&str]) -> Result<(Vec<Def>, Vec<Block>), String> {
 }
 
 fn parse_species(lines: &[&str]) -> Result<Species, String> {
-    let mut s = Species { register: true, weight: 1.0, ..Species::default() };
+    let mut s = Species { register: true, weight: 1.0, drawn: true, ..Species::default() };
     for raw in lines {
         let text = raw.split('#').next().unwrap_or("").trim();
         if text.is_empty() {
@@ -244,6 +249,7 @@ fn parse_species(lines: &[&str]) -> Result<Species, String> {
             "register" => s.register = v != "no",
             "harmony" => s.harmony = v == "yes",
             "explore" => s.explore = v == "yes",
+            "draw" => s.drawn = v != "no",
             _ => return Err(format!("unknown species key '{k}'")),
         }
     }
@@ -394,7 +400,7 @@ pub fn explore_for_seed(seed: u64) -> &'static Book {
 
 fn species_among(seed: u64, explore: bool) -> &'static Book {
     let mut r = Rng::for_candidate(seed ^ 0x5350_4543, 0); // "SPEC"
-    let books: Vec<&'static Book> = all().iter().filter(|b| b.species.explore == explore).collect();
+    let books: Vec<&'static Book> = all().iter().filter(|b| b.species.explore == explore && b.species.drawn).collect();
     let w: Vec<f64> = books.iter().map(|b| b.species.weight).collect();
     books[r.weighted(&w)]
 }

@@ -4,10 +4,12 @@
 pub mod audible;
 pub mod book;
 pub mod critic;
+pub mod dialogue;
 pub mod display;
 pub mod grammar;
 pub mod groove;
 pub mod harmony;
+pub mod measure;
 pub mod rng;
 pub mod search;
 pub mod sound;

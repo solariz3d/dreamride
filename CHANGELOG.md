@@ -7,6 +7,34 @@ All notable changes to this project are documented here. The format follows
 
 ### Added
 
+- **The song measured against itself** (`src/compose/measure.rs`, `src/bin/luminesce-measure.rs`,
+  `docs/what_makes_music_bad.md`). The critic judges each stage on its own, and nothing judged a stage against the song
+  so far, which is where the research on structure and the keeper's "unwinding" both point. Six measures per stretch:
+  - self-surprise of the lead, given every lead note before it;
+  - roughness (the critic's own);
+  - repetition of the song's own bars;
+  - macroharmony;
+  - centricity (Krumhansl–Schmuckler);
+  - conjunct motion.
+
+  `luminesce-measure` regenerates every saved (S) and marked-bad (B) stretch from its seed, and measures it only if it
+  matches the saved file byte for byte. It scores the prediction registered before any bad mark, once there are 8
+  marks on each side. Tests: `tests/measure.rs` (8 known cases).
+- **B marks a stretch as bad** (world app, Stream). The keeper: the goal is "not to have any bad rolls", but nothing
+  recorded which rolls were bad; S only ever saved the good ones. B saves the last four stages and the seed, as S does,
+  into `judged\bad\` beside `examples\`, kept out of the song library. These are the cases the generator will be
+  measured against. Tests: `world/tests/ui_logic_test.cpp` (the key maps, does not repeat when held, is on the help
+  card).
+- **Generator version 3: in a lens stage the counter listens to the lead** (`src/compose/dialogue.rs`,
+  `docs/dialogue.md`). The keeper heard the parts as "two people talking to each other while both arent listening".
+  No lens counter-line had ever read the lead, only the chords. Each song draws one way of listening:
+  - imitation: the lead's own functions read d beats earlier, an interval below, snapped to the chord;
+  - contrary motion about the lead's median;
+  - an answer: the counter sounds only where the lead's gate is closed.
+
+  A seed composes the same moves at versions 2 and 3, and only the counter's line differs. Versions 1 and 2 are
+  unchanged. Registered before the first run, with a blind A/B still to come. Tests: `tests/dialogue.rs` (5, with an
+  oracle independent of the code it checks).
 - **Drums sampled from real drummers** (`src/compose/groove.rs`, `src/compose/groove_model.txt`, `docs/groove.md`).
   The written lens drums were fixed patterns and the keeper heard the hats as "way too basic". The lens book's kick,
   hat, clap and perc modules are now 24 grooves generated from statistics learned from Magenta's Groove MIDI Dataset
@@ -59,6 +87,10 @@ All notable changes to this project are documented here. The format follows
   `replace_drums` call in `book::all`.
 
 ### Fixed
+
+- **Saving some lens stretches failed** (`'T_1' is defined twice`). A stage's time was named `T_i`, and so was a
+  stage-local definition named `T`. The time now takes a free name when that happens; every other save is
+  byte-identical. Test: `tests/stream.rs` `every_lens_stretch_saves`.
 
 - **A saved stream stretch keeps the instruments that were heard** (`stream::save_text`). It merged each stage's
   undressed equation, so the drawn instruments were lost. The keeper saved seed 152637 after five minutes of listening,

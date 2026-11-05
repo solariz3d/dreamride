@@ -212,6 +212,10 @@ fn a_seed_lands_on_every_species_and_the_kept_one_most() {
         let n = count.get(&b.species.name).copied().unwrap_or(0);
         if b.species.explore {
             assert_eq!(n, 0, "{} is behind Explore but the default stream chose it", b.species.name);
+        } else if !b.species.drawn {
+            // `draw no` (the phrase species, 2026-11-05): reached only by name until a generator version takes it in, so
+            // that adding it moves no existing seed to another species.
+            assert_eq!(n, 0, "{} is draw no but a species seed chose it", b.species.name);
         } else {
             assert!(b.species.harmony && n >= 20, "{} is reached {count:?}", b.species.name);
         }
@@ -226,7 +230,7 @@ fn a_seed_lands_on_every_species_and_the_kept_one_most() {
     assert!(explore.iter().all(|n| strange.get(*n).copied().unwrap_or(0) >= 30) && strange.len() == explore.len(), "{strange:?}");
     // Weighted toward what was kept (the lens: the pluck, the wandering blancmange; the dialogue: the voice over
     // stillness), never only those.
-    let plain: Vec<usize> = species().iter().filter(|b| b.species.weight == 1.0 && !b.species.explore).map(|b| count[&b.species.name]).collect();
+    let plain: Vec<usize> = species().iter().filter(|b| b.species.weight == 1.0 && !b.species.explore && b.species.drawn).map(|b| count[&b.species.name]).collect();
     let mean = plain.iter().sum::<usize>() as f64 / plain.len() as f64;
     for kept in ["lens", "dialogue"] {
         assert!(count[kept] as f64 > 1.3 * mean, "{kept}: {} against {mean:.0}", count[kept]);

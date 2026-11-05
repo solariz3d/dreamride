@@ -301,6 +301,12 @@ TEST(every_documented_key_maps_to_its_action) {
   CHECK(KeyToAction('H') == Action::ToggleHelp);
   CHECK(KeyToAction(VK_F11) == Action::Fullscreen);
   CHECK(KeyToAction(VK_ESCAPE) == Action::Escape);
+  CHECK(KeyToAction('S') == Action::SaveStream);
+  CHECK(KeyToAction('B') == Action::MarkBad);
+}
+TEST(marking_a_stretch_bad_does_not_repeat_when_held) {
+  // One press is one judgment: holding B must not write a pile of copies of the same stretch.
+  CHECK(KeyToAction('B', true) == Action::None);
 }
 TEST(unmapped_keys_do_nothing) {
   CHECK(KeyToAction('Q') == Action::None);

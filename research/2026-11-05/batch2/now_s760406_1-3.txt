@@ -1,0 +1,151 @@
+# Saved from a Dreamride stream (from the chaos species, seed 760406, seed 760406): stages 1 to 3, 24 bars.
+#
+# Stage 1: the seed opens with the arp.
+# Stage 2: build: the pads come in.
+# Stage 3: build: the lead comes in.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 128
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 96
+
+Q = floor(t / 32)
+K = -4
+c = 6
+h(d) = K + floor((12d + c) / 7)
+pn(d) = h(7 floor(d / 5) + mod(floor(if(c < 4, 64320, 54210) / 10^mod(d, 5)), 10))
+r = 3.5699
+hd(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr(i) = K + mod((hd(Hb, i) + Ho) Hm, 12)
+Hv(m, i) = K + 6m - 16 + hd(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+Hc(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv(0, i) - 1 - mod(Hv(0, i) - 1 - Hr(i), 12), Hv(mod(m, 4) - 1, i))
+Hm = 7
+Ho = 0
+Hb = 22002200222211
+Hx = 3311331133111113
+Hy = 2244224422443333
+Hz = 6633663366334446
+T_0 = t - 0
+Fa_0(x) = (2.9 + frac(T_0 / 4)) x * (1 - x)
+Oa_0 = Hc(floor(4 + 4.99 iter(Fa_0, 0.5, 48 + mod(floor(4T_0), 8))), floor(T_0 / 2))
+T_1 = t - 32
+F_1(x) = r x * (1 - x)
+X_1(n) = iter(F_1, 0.3, n)
+ob_1(x, k) = mod(floor(x / 2^k), 2)
+Fa_1(x) = (2.9 + frac(T_1 / 4)) x * (1 - x)
+Oa_1 = Hc(floor(4 + 4.99 iter(Fa_1, 0.5, 48 + mod(floor(4T_1), 8))), floor(T_1 / 2))
+Op_1(m) = Hc(1 + m + floor(3 X_1(j_1 + 20)), floor(T_1 / 2))
+n_1 = floor(4T_1)
+j_1 = floor(T_1 / 4)
+T_2 = t - 64
+F_2(x) = r x * (1 - x)
+X_2(n) = iter(F_2, 0.3, n)
+ob_2(x, k) = mod(floor(x / 2^k), 2)
+ac_2(x, k, n) = if((frac(7 mod(k, n) / n) == 0)(mod(7 mod(k, n) / n, 2) == 0)(7 mod(k, n) / n <= 4), sc_2(x, 2 floor(k / n) + (7 mod(k, n) / n >= 3.5)), x)
+nr_2(x, p) = p + 12 floor((x - p) / 12 + 0.5)
+mn_2(x, a, b) = if(abs(x - a) <= abs(x - b), a, b)
+sc_2(x, i) = mn_2(x, mn_2(x, nr_2(x, Hr(i)), nr_2(x, Hv(0, i))), mn_2(x, nr_2(x, Hv(1, i)), nr_2(x, Hv(2, i))))
+Ol_2 = ac_2(pn(floor(3 + 9 X_2(mod(floor(1.75T_2), 28)))), floor(1.75T_2), 7)
+Og_2 = (X_2(mod(floor(1.75T_2), 28)) > 0.2)(0.7 - frac(1.75T_2))
+Fa_2(x) = (2.9 + frac(T_2 / 4)) x * (1 - x)
+Oa_2 = Hc(floor(4 + 4.99 iter(Fa_2, 0.5, 48 + mod(floor(4T_2), 8))), floor(T_2 / 2))
+Op_2(m) = Hc(1 + m + floor(3 X_2(j_2 + 20)), floor(T_2 / 2))
+n_2 = floor(4T_2)
+j_2 = floor(T_2 / 4)
+b_2 = frac(T_2)
+
+voice pad1 {
+  pitch = if(Q == 0, 0, if(Q == 1, Op_1(0), Op_2(0)))
+  gate = if(Q == 0, 0, if(Q == 1, ob_1(21, mod(floor(1.75T_1), 7)) (0.9 - frac(1.75T_1 / 2)), ob_2(21, mod(floor(1.75T_2), 7)) (0.9 - frac(1.75T_2 / 2))))
+  gain = 0.0627
+  pan = -0.3
+  reverb = 0.4
+  wave = additive
+  partials = 0, -8.1, -10.6, -14.5, -15.3, -18.4, -18.8, -21.4, -21.5, -23.9
+  attack = 463.36
+  decay = 388.94
+  sustain = 0.7
+  release = 712.83
+  cutoff = if(Q == 0, 0, if(Q == 1, 3009.39, 3009.39))
+  detune = 10.28
+  rolloff = 2062.75
+}
+
+voice pad2 {
+  pitch = if(Q == 0, 0, if(Q == 1, Op_1(1), Op_2(1)))
+  gate = if(Q == 0, 0, if(Q == 1, ob_1(21, mod(floor(1.75T_1), 7)) (0.9 - frac(1.75T_1 / 2)), ob_2(21, mod(floor(1.75T_2), 7)) (0.9 - frac(1.75T_2 / 2))))
+  gain = 0.0582
+  pan = 0.3
+  reverb = 0.4
+  wave = additive
+  partials = 0, -8.1, -10.6, -14.5, -15.3, -18.4, -18.8, -21.4, -21.5, -23.9
+  attack = 463.36
+  decay = 388.94
+  sustain = 0.7
+  release = 712.83
+  cutoff = if(Q == 0, 0, if(Q == 1, 3009.39, 3009.39))
+  detune = 10.28
+  rolloff = 2062.75
+}
+
+voice pad3 {
+  pitch = if(Q == 0, 0, if(Q == 1, Op_1(2), Op_2(2)))
+  gate = if(Q == 0, 0, if(Q == 1, ob_1(21, mod(floor(1.75T_1), 7)) (0.9 - frac(1.75T_1 / 2)), ob_2(21, mod(floor(1.75T_2), 7)) (0.9 - frac(1.75T_2 / 2))))
+  gain = 0.0537
+  pan = 0
+  reverb = 0.4
+  wave = additive
+  partials = 0, -8.1, -10.6, -14.5, -15.3, -18.4, -18.8, -21.4, -21.5, -23.9
+  attack = 463.36
+  decay = 388.94
+  sustain = 0.7
+  release = 712.83
+  cutoff = if(Q == 0, 0, if(Q == 1, 3009.39, 3009.39))
+  detune = 10.28
+  rolloff = 2062.75
+}
+
+voice arp {
+  pitch = if(Q == 0, Oa_0, if(Q == 1, Oa_1, Oa_2))
+  gate = if(Q == 0, 0.55 - frac(4T_0), if(Q == 1, 0.55 - frac(4T_1), 0.55 - frac(4T_2)))
+  gain = 0.0739
+  pan = -0.2
+  reverb = 0.3
+  delay = 0.2
+  wave = additive
+  partials = 0, -5, -5.5, -7.9, -8.1, -10.6, -10.7, -12.9, -12.6, -14.5, -14, -15.8
+  attack = 4.57
+  decay = 231.5
+  sustain = 0.41
+  release = 193.49
+  cutoff = if(Q == 0, 2486.8, if(Q == 1, 2486.8, 2486.8))
+  filter_env = 3.38
+  filter_decay = 128.22
+  detune = 6.16
+  rolloff = 4594.05
+}
+
+voice lead {
+  pitch = if(Q == 0, 0, if(Q == 1, 0, Ol_2))
+  gate = if(Q == 0, 0, if(Q == 1, 0, Og_2))
+  gain = 0.1872
+  pan = 0.1
+  reverb = 0.3
+  delay = 0.25
+  wave = additive
+  partials = 0.3, -14.5, -3.8, -19.6, -8.7, -23.1, -11.2
+  attack = 2.31
+  decay = 122.44
+  sustain = 0.4
+  release = 109.79
+  cutoff = if(Q == 0, 0, if(Q == 1, 0, 2211.67))
+  filter_env = 1.55
+  filter_decay = 145.76
+  detune = 5.33
+  rolloff = 660
+}

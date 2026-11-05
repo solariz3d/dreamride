@@ -1,0 +1,16 @@
+438517 the automaton species, seed 438517
+267012 the dialogue species, seed 267012
+857242 the oneline species, seed 857242
+283034 the chaos species, seed 283034
+51477 the lens species, seed 51477
+707207 the dialogue species, seed 707207
+546123 the chaos species, seed 546123
+344178 the chaos species, seed 344178
+160892 the bounce species, seed 160892
+698567 the lens species, seed 698567
+603524 the bounce species, seed 603524
+518643 the oneline species, seed 518643
+104389 the chaos species, seed 104389
+235665 the oneline species, seed 235665
+480560 the automaton species, seed 480560
+911134 the dialogue species, seed 911134

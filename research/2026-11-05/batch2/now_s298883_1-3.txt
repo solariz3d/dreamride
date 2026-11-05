@@ -1,0 +1,139 @@
+# Saved from a Dreamride stream (from the dialogue species, seed 298883, seed 298883): stages 1 to 3, 24 bars.
+#
+# Stage 1: the seed opens with the bass and lead.
+# Stage 2: build: the hat comes in.
+# Stage 3: build: the kick comes in; a new progression, dialogue/prog.two_five_one.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 90
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 96
+
+Q = floor(t / 32)
+K = -1
+c = 5
+h(d) = K + floor((12d + c) / 7)
+pt(d) = h(7 floor(d / 5) + mod(floor(if(c < 4, 64320, 54210) / 10^mod(d, 5)), 10))
+sw(a, b, u) = a + (b - a) smooth((u - 0.55) / 0.45)
+dw(p) = mod(p + 7, 12) - 34
+hd(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+nr(x, p) = p + 12 floor((x - p) / 12 + 0.5)
+mn(x, a, b) = if(abs(x - a) <= abs(x - b), a, b)
+Hm = 7
+Dc(k) = 4 + floor(mod(k, 16) / 2.2) + (mod(k, 3) == 2)
+T_0 = t - 0
+v_0 = T_0 + 0.32 sin(tau T_0 / 8)
+ps_0(d, k, p) = if(mod(k, p) == 0, sc_0(pt(d), floor(k / p)), pt(d))
+Hr_0(i) = K + mod((hd(Hb_0, i) + Ho_0) Hm, 12)
+Hv_0(m, i) = K + 6m - 16 + hd(if(m == 0, Hx_0, if(m == 1, Hy_0, Hz_0)), i)
+sc_0(x, i) = mn(x, mn(x, nr(x, Hr_0(i)), nr(x, Hv_0(0, i))), mn(x, nr(x, Hv_0(1, i)), nr(x, Hv_0(2, i))))
+Ho_0 = -2
+Hb_0 = 2211110022554100
+Hx_0 = 3311000033334400
+Hy_0 = 2222110022553655
+Hz_0 = 6644444466448766
+Dl_0 = sw(ps_0(Dc(floor(2v_0)), floor(2v_0), 4), ps_0(Dc(floor(2v_0) + 1), floor(2v_0) + 1, 4), frac(2v_0))
+Db_0(m) = if((mod(m, 2) == 1)(Hr_0(m) == Hr_0(m - 1)), sc_0(dw(Hr_0(m)) + 7, m), dw(Hr_0(m)))
+Dz_0 = sw(Db_0(floor(T_0 / 2)), Db_0(floor(T_0 / 2) + 1), frac(T_0 / 2))
+b_0 = frac(T_0)
+T_1 = t - 32
+v_1 = T_1 + 0.32 sin(tau T_1 / 8)
+ps_1(d, k, p) = if(mod(k, p) == 0, sc_1(pt(d), floor(k / p)), pt(d))
+Hr_1(i) = K + mod((hd(Hb_1, i) + Ho_1) Hm, 12)
+Hv_1(m, i) = K + 6m - 16 + hd(if(m == 0, Hx_1, if(m == 1, Hy_1, Hz_1)), i)
+sc_1(x, i) = mn(x, mn(x, nr(x, Hr_1(i)), nr(x, Hv_1(0, i))), mn(x, nr(x, Hv_1(1, i)), nr(x, Hv_1(2, i))))
+Ho_1 = -2
+Hb_1 = 2211110022554100
+Hx_1 = 3311000033334400
+Hy_1 = 2222110022553655
+Hz_1 = 6644444466448766
+Dl_1 = sw(ps_1(Dc(floor(2v_1)), floor(2v_1), 4), ps_1(Dc(floor(2v_1) + 1), floor(2v_1) + 1, 4), frac(2v_1))
+Db_1(m) = if((mod(m, 2) == 1)(Hr_1(m) == Hr_1(m - 1)), sc_1(dw(Hr_1(m)) + 7, m), dw(Hr_1(m)))
+Dz_1 = sw(Db_1(floor(T_1 / 2)), Db_1(floor(T_1 / 2) + 1), frac(T_1 / 2))
+Dh_1 = max(0.4 - frac(v_1), (frac(v_1) >= 0.67)(0.85 - frac(v_1)))
+b_1 = frac(T_1)
+T_2 = t - 64
+v_2 = T_2 + 0.32 sin(tau T_2 / 8)
+ps_2(d, k, p) = if(mod(k, p) == 0, sc_2(pt(d), floor(k / p)), pt(d))
+Hr_2(i) = K + mod((hd(Hb_2, i) + Ho_2) Hm, 12)
+Hv_2(m, i) = K + 6m - 16 + hd(if(m == 0, Hx_2, if(m == 1, Hy_2, Hz_2)), i)
+sc_2(x, i) = mn(x, mn(x, nr(x, Hr_2(i)), nr(x, Hv_2(0, i))), mn(x, nr(x, Hv_2(1, i)), nr(x, Hv_2(2, i))))
+Ho_2 = 0
+Hb_2 = 221100332211
+Hx_2 = 3333443333334443
+Hy_2 = 2222333322553333
+Hz_2 = 6666888866448866
+Dl_2 = sw(ps_2(Dc(floor(2v_2)), floor(2v_2), 4), ps_2(Dc(floor(2v_2) + 1), floor(2v_2) + 1, 4), frac(2v_2))
+Db_2(m) = if((mod(m, 2) == 1)(Hr_2(m) == Hr_2(m - 1)), sc_2(dw(Hr_2(m)) + 7, m), dw(Hr_2(m)))
+Dz_2 = sw(Db_2(floor(T_2 / 2)), Db_2(floor(T_2 / 2) + 1), frac(T_2 / 2))
+Dx_2 = ((mod(floor(2v_2), 8) == 0) + (mod(floor(2v_2), 8) == 3) + (mod(floor(2v_2), 8) == 4))(0.5 - frac(2v_2))
+Dh_2 = max(0.4 - frac(v_2), (frac(v_2) >= 0.67)(0.85 - frac(v_2)))
+b_2 = frac(T_2)
+
+voice bass {
+  pitch = if(Q == 0, Dz_0, if(Q == 1, Dz_1, Dz_2))
+  gate = if(Q == 0, 0.94 - frac(T_0 / 2), if(Q == 1, 0.94 - frac(T_1 / 2), 0.94 - frac(T_2 / 2)))
+  gain = 0.1604
+  wave = additive
+  partials = 0.2, -14.3, -15.8, -29.1, -28.4
+  attack = 2.89
+  decay = 356.67
+  sustain = 0.79
+  release = 108.79
+  cutoff = if(Q == 0, 560.75, if(Q == 1, 560.75, 560.75))
+  resonance = 0.31
+  filter_env = 2.42
+  filter_decay = 141.83
+  drive = 0.81
+  rolloff = 2230.02
+}
+
+voice lead {
+  pitch = if(Q == 0, Dl_0 + vibrato(note_age, 0.35, 0.4, 0.2, 5.5), if(Q == 1, Dl_1 + vibrato(note_age, 0.35, 0.4, 0.2, 5.5), Dl_2 + vibrato(note_age, 0.35, 0.4, 0.2, 5.5)))
+  gate = if(Q == 0, (mod(v_0, 16) < 7.6)(0.92 - frac(2v_0)), if(Q == 1, (mod(v_1, 16) < 7.6)(0.92 - frac(2v_1)), (mod(v_2, 16) < 7.6)(0.92 - frac(2v_2))))
+  gain = 0.1398
+  pan = 0.1
+  reverb = 0.4
+  delay = 0.25
+  wave = additive
+  partials = 0, -16.7, -3.7, -16.6, -4.3, -19.3, -8.1
+  attack = 3.31
+  decay = 300
+  sustain = 0.65
+  release = 90.04
+  cutoff = if(Q == 0, 1859.94, if(Q == 1, 1859.94, 1859.94))
+  filter_env = 1.96
+  filter_decay = 196.77
+  detune = 10.92
+  drive = 1.35
+  rolloff = 1882.32
+}
+
+drum kick {
+  trigger = if(Q == 0, 0, if(Q == 1, 0, Dx_2))
+  gain = 0.8172
+  kind = dash
+  from = 261.09
+  to = 51.98
+  dash = 39.04
+  hold = 8.09
+  decay = 94.2
+  length = 464.92
+  partials = 0, -13.6, -13.8, -22.6
+  rolloff = 660
+}
+
+drum hat {
+  trigger = if(Q == 0, 0, if(Q == 1, Dh_1, Dh_2))
+  amp = if(Q == 0, 0, if(Q == 1, 0.5 + 0.5 (frac(v_1) < 0.5), 0.5 + 0.5 (frac(v_2) < 0.5)))
+  gain = 1.0915
+  pan = 0.3
+  kind = hat
+  decay = 22.59
+  length = 100.63
+}

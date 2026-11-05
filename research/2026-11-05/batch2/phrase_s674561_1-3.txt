@@ -1,0 +1,180 @@
+# Saved from a Dreamride stream (from the phrase species, seed 674561, seed 674561): stages 1 to 3, 24 bars.
+#
+# Stage 1: the seed opens with the bass and kick.
+# Stage 2: build: the lead comes in.
+# Stage 3: build: the pads come in.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T2_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 100
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 96
+
+Q = floor(t / 32)
+K = -1
+c = 5
+h(d) = K + floor((12d + c) / 7)
+lo(p) = mod(p + 4, 12) - 40
+hd(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr(i) = K + mod((hd(Hb, i) + Ho) Hm, 12)
+Hm = 7
+Ho = -1
+Hb = 1100553311005432
+Hx = 3311334433113241
+Hy = 2255553322555533
+Hz = 6688668866886584
+T2_0 = t - 0
+Mn_0 = 58
+Py_0 = mod(floor(2T2_0), 8)
+Pz_0 = if((Hr(floor(T2_0 / 2) + 1) != Hr(floor(T2_0 / 2))) (frac(T2_0 / 2) >= 0.875), lo(Hr(floor(T2_0 / 2) + 1)) - 1, lo(Hr(floor(T2_0 / 2))) + 12 (Py_0 == 6))
+Pk_0 = mod(floor(2T2_0), 8)
+Pkk_0 = (T2_0 < 30) ((Pk_0 == 0) + (Pk_0 == 4) + (Pk_0 == 3) (mod(floor(T2_0 / 4), 2) == 1) > 0) (0.5 - frac(2T2_0))
+T2_1 = t - 32
+Mn_1 = 0
+tri_1(v) = abs(v - floor(v + 0.5))
+T_1(u) = tri_1(u) + 0.5 tri_1(2u) + 0.25 tri_1(4u) + 0.125 tri_1(8u) + 0.0625 tri_1(16u)
+Pr_1 = if(mod(Mn_1, 4) == 0, 100012901010001, if(mod(Mn_1, 4) == 1, 120120100100123, if(mod(Mn_1, 4) == 2, 123010101234590, 10101239999)))
+Pa_1(x) = hd(Pr_1, mod(x, 16))
+Pc_1(s) = 5 + floor(4 T_1((s + Mn_1) / 16) + 2.5 T_1((s + 3 Mn_1) / 4))
+Hv_1(m, i) = K + 6m - 16 + hd(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+nr_1(x, p) = p + 12 floor((x - p) / 12 + 0.5)
+mn_1(x, a, b) = if(abs(x - a) <= abs(x - b), a, b)
+sc_1(x, i) = mn_1(x, mn_1(x, nr_1(x, Hr(i)), nr_1(x, Hv_1(0, i))), mn_1(x, nr_1(x, Hv_1(1, i)), nr_1(x, Hv_1(2, i))))
+Pb_1 = floor(T2_1 / 4)
+Px_1 = mod(floor(2T2_1), 16)
+Ps_1 = Px_1 - Pa_1(Px_1)
+Pe_1 = mod(Pb_1, 4) == 3
+Pd_1 = if(Pe_1, Pc_1(0) + 2 (Pb_1 == 3), if(Pb_1 == 6, Pc_1(0) + 4 - floor(mod(T2_1, 4)), Pc_1(Ps_1)))
+Pl_1 = if(Pe_1, sc_1(h(Pd_1), 2 Pb_1 + 1), if(Pb_1 == 6, if(mod(floor(T2_1), 2) == 0, sc_1(h(Pd_1), floor(T2_1 / 2)), h(Pd_1)), if(mod(Ps_1, 2) == 0, sc_1(h(Pd_1), floor((floor(2T2_1) - Pa_1(Px_1)) / 4)), h(Pd_1))))
+Pg_1 = if(Pe_1, mod(T2_1, 4) < 2.5, if(Pb_1 == 6, frac(T2_1) < 0.85, (Pa_1(Px_1) != 9) (1 - (Pa_1(Px_1 + 1) == 0) (frac(2T2_1) > 0.85))))
+Py_1 = mod(floor(2T2_1), 8)
+Pz_1 = if((Hr(floor(T2_1 / 2) + 1) != Hr(floor(T2_1 / 2))) (frac(T2_1 / 2) >= 0.875), lo(Hr(floor(T2_1 / 2) + 1)) - 1, lo(Hr(floor(T2_1 / 2))) + 12 (Py_1 == 6))
+Pk_1 = mod(floor(2T2_1), 8)
+Pkk_1 = (T2_1 < 30) ((Pk_1 == 0) + (Pk_1 == 4) + (Pk_1 == 3) (mod(floor(T2_1 / 4), 2) == 1) > 0) (0.5 - frac(2T2_1))
+b_1 = frac(T2_1)
+s_1 = floor(T2_1 / 16)
+T2_2 = t - 64
+Mn_2 = 0
+tri_2(v) = abs(v - floor(v + 0.5))
+T_2(u) = tri_2(u) + 0.5 tri_2(2u) + 0.25 tri_2(4u) + 0.125 tri_2(8u) + 0.0625 tri_2(16u)
+Pr_2 = if(mod(Mn_2, 4) == 0, 100012901010001, if(mod(Mn_2, 4) == 1, 120120100100123, if(mod(Mn_2, 4) == 2, 123010101234590, 10101239999)))
+Pa_2(x) = hd(Pr_2, mod(x, 16))
+Pc_2(s) = 5 + floor(4 T_2((s + Mn_2) / 16) + 2.5 T_2((s + 3 Mn_2) / 4))
+Hv_2(m, i) = K + 6m - 16 + hd(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+nr_2(x, p) = p + 12 floor((x - p) / 12 + 0.5)
+mn_2(x, a, b) = if(abs(x - a) <= abs(x - b), a, b)
+sc_2(x, i) = mn_2(x, mn_2(x, nr_2(x, Hr(i)), nr_2(x, Hv_2(0, i))), mn_2(x, nr_2(x, Hv_2(1, i)), nr_2(x, Hv_2(2, i))))
+Pb_2 = floor(T2_2 / 4)
+Px_2 = mod(floor(2T2_2), 16)
+Ps_2 = Px_2 - Pa_2(Px_2)
+Pe_2 = mod(Pb_2, 4) == 3
+Pd_2 = if(Pe_2, Pc_2(0) + 2 (Pb_2 == 3), if(Pb_2 == 6, Pc_2(0) + 4 - floor(mod(T2_2, 4)), Pc_2(Ps_2)))
+Pl_2 = if(Pe_2, sc_2(h(Pd_2), 2 Pb_2 + 1), if(Pb_2 == 6, if(mod(floor(T2_2), 2) == 0, sc_2(h(Pd_2), floor(T2_2 / 2)), h(Pd_2)), if(mod(Ps_2, 2) == 0, sc_2(h(Pd_2), floor((floor(2T2_2) - Pa_2(Px_2)) / 4)), h(Pd_2))))
+Pg_2 = if(Pe_2, mod(T2_2, 4) < 2.5, if(Pb_2 == 6, frac(T2_2) < 0.85, (Pa_2(Px_2) != 9) (1 - (Pa_2(Px_2 + 1) == 0) (frac(2T2_2) > 0.85))))
+Py_2 = mod(floor(2T2_2), 8)
+Pz_2 = if((Hr(floor(T2_2 / 2) + 1) != Hr(floor(T2_2 / 2))) (frac(T2_2 / 2) >= 0.875), lo(Hr(floor(T2_2 / 2) + 1)) - 1, lo(Hr(floor(T2_2 / 2))) + 12 (Py_2 == 6))
+Pk_2 = mod(floor(2T2_2), 8)
+Pkk_2 = (T2_2 < 30) ((Pk_2 == 0) + (Pk_2 == 4) + (Pk_2 == 3) (mod(floor(T2_2 / 4), 2) == 1) > 0) (0.5 - frac(2T2_2))
+b_2 = frac(T2_2)
+s_2 = floor(T2_2 / 16)
+
+voice bass {
+  pitch = if(Q == 0, Pz_0, if(Q == 1, Pz_1, Pz_2))
+  gate = if(Q == 0, ((Py_0 == 0) + (Py_0 == 3) + (Py_0 == 6) + (Py_0 == 7) > 0) (0.85 - frac(2T2_0)), if(Q == 1, ((Py_1 == 0) + (Py_1 == 3) + (Py_1 == 6) + (Py_1 == 7) > 0) (0.85 - frac(2T2_1)), ((Py_2 == 0) + (Py_2 == 3) + (Py_2 == 6) + (Py_2 == 7) > 0) (0.85 - frac(2T2_2))))
+  gain = 0.1950
+  wave = additive
+  partials = 0.1, -11.7, -8.2, -21.1, -17.7
+  attack = 4.59
+  decay = 205.12
+  sustain = 0.42
+  release = 81.16
+  cutoff = if(Q == 0, 500.99, if(Q == 1, 500.99, 500.99))
+  resonance = 0.13
+  filter_env = 1.66
+  filter_decay = 167.44
+  drive = 0.83
+  rolloff = 1849.22
+}
+
+voice pad1 {
+  pitch = if(Q == 0, 0, if(Q == 1, 0, Hv_2(0, floor(T2_2 / 2))))
+  gate = if(Q == 0, 0, if(Q == 1, 0, 1 - (Hv_2(0, floor(T2_2 / 2)) != Hv_2(0, floor(T2_2 / 2) - 1)) (frac(T2_2 / 2) < 0.03)))
+  gain = 0.0529
+  reverb = 0.5
+  wave = additive
+  partials = 0.1, -11.5, -12.2, -17.7, -17.5, -23.2, -23.1, -28.6, -28, -33, -32, -36.5, -35.1, -39.3
+  attack = 174.69
+  decay = 768.02
+  sustain = 0.74
+  release = 478.86
+  cutoff = if(Q == 0, 0, if(Q == 1, 0, 1895.33))
+  detune = 8.08
+  rolloff = 3198.86
+}
+
+voice pad2 {
+  pitch = if(Q == 0, 0, if(Q == 1, 0, Hv_2(1, floor(T2_2 / 2))))
+  gate = if(Q == 0, 0, if(Q == 1, 0, 1 - (Hv_2(1, floor(T2_2 / 2)) != Hv_2(1, floor(T2_2 / 2) - 1)) (frac(T2_2 / 2) < 0.03)))
+  gain = 0.0476
+  reverb = 0.5
+  wave = additive
+  partials = 0.1, -11.5, -12.2, -17.7, -17.5, -23.2, -23.1, -28.6, -28, -33, -32, -36.5, -35.1, -39.3
+  attack = 174.69
+  decay = 768.02
+  sustain = 0.74
+  release = 478.86
+  cutoff = if(Q == 0, 0, if(Q == 1, 0, 1895.33))
+  detune = 8.08
+  rolloff = 3198.86
+}
+
+voice pad3 {
+  pitch = if(Q == 0, 0, if(Q == 1, 0, Hv_2(2, floor(T2_2 / 2))))
+  gate = if(Q == 0, 0, if(Q == 1, 0, 1 - (Hv_2(2, floor(T2_2 / 2)) != Hv_2(2, floor(T2_2 / 2) - 1)) (frac(T2_2 / 2) < 0.03)))
+  gain = 0.0423
+  reverb = 0.5
+  wave = additive
+  partials = 0.1, -11.5, -12.2, -17.7, -17.5, -23.2, -23.1, -28.6, -28, -33, -32, -36.5, -35.1, -39.3
+  attack = 174.69
+  decay = 768.02
+  sustain = 0.74
+  release = 478.86
+  cutoff = if(Q == 0, 0, if(Q == 1, 0, 1895.33))
+  detune = 8.08
+  rolloff = 3198.86
+}
+
+voice lead {
+  pitch = if(Q == 0, 0, if(Q == 1, Pl_1, Pl_2))
+  gate = if(Q == 0, 0, if(Q == 1, Pg_1, Pg_2))
+  gain = 0.2285
+  pan = 0.05
+  reverb = 0.35
+  delay = 0.2
+  wave = additive
+  partials = 0, -18.2, -6.6, -21.6, -8.4, -23.1, -10.2, -25.1, -12.3, -27.2
+  attack = 2.91
+  decay = 1189.41
+  sustain = 0.12
+  release = 588.5
+  detune = 12.73
+  rolloff = 660
+}
+
+drum kick {
+  trigger = if(Q == 0, Pkk_0, if(Q == 1, Pkk_1, Pkk_2))
+  gain = 0.9563
+  kind = dash
+  from = 555.63
+  to = 54.5
+  dash = 16.79
+  hold = 14.33
+  decay = 76.91
+  length = 292.33
+  partials = 0, -20.6, -17.6, -22.9
+  rolloff = 660
+}

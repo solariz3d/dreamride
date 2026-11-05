@@ -1835,6 +1835,8 @@ pub struct Composer {
     instruments: Instruments,
     /// The generator version this stream was composed by ([`GENERATOR_VERSION`] unless asked for an older one).
     version: u32,
+    /// The song's way of listening, lead to counter, in a lens stage (version 3 on; docs/dialogue.md).
+    dialogue: Option<super::dialogue::Kind>,
 }
 
 /// The generators' version: a seed plus its version is a song, forever. Any change to how a stream is composed or
@@ -1842,9 +1844,10 @@ pub struct Composer {
 /// (docs/versions.md); `tests/versions.rs` holds version 1 to the keeper's saved seed byte for byte.
 /// - 1: the instruments of 2026-11-04 05:45 (`timbre_v1.rs`), the build seed 152637 was heard on.
 /// - 2: drawn kits, a drawn rolloff, held-lead filters (`timbre.rs`).
-pub const GENERATOR_VERSION: u32 = 2;
+/// - 3: version 2, and in a lens stage the counter listens to the lead (`dialogue.rs`, docs/dialogue.md).
+pub const GENERATOR_VERSION: u32 = 3;
 /// Every version a stream can be started at.
-pub const GENERATOR_VERSIONS: [u32; 2] = [1, 2];
+pub const GENERATOR_VERSIONS: [u32; 3] = [1, 2, 3];
 
 /// A song's drawn instruments, by the generator version that drew them.
 #[derive(Debug, Clone)]
@@ -1911,6 +1914,11 @@ impl Composer {
         if is_book(&eq) && book::of(&eq).species.harmony {
             set_key(&mut eq, key_for_seed(s));
         }
+        // A species whose frame holds a motif number (`Mn`, the phrase species) gets its song's motif, drawn once like the
+        // key. No other species has `Mn`, so nothing else changes.
+        if let Some(d) = eq.def_mut("Mn") {
+            *d = Def::new("Mn", format!("Mn = {}", Rng::for_candidate(s ^ 0x4D4F_5449_46, 0).range(0, 63))); // "MOTIF"
+        }
         let plan = plan_arc(s, 0);
         let bpm = eq.settings.iter().find_map(|l| l.strip_prefix("bpm ").and_then(|v| v.trim().parse::<f64>().ok())).unwrap_or(100.0);
         let mut c = Composer {
@@ -1929,6 +1937,7 @@ impl Composer {
             wander,
             instruments: Instruments::None,
             version,
+            dialogue: if version >= 3 { Some(super::dialogue::draw(s)) } else { None },
         };
         set_clock(&mut eq, 0);
         let summary = format!("the seed opens with {}", list(&layers(&eq)));
@@ -1988,10 +1997,29 @@ impl Composer {
         if !self.dresses(eq) {
             return eq.clone();
         }
+        match &self.dialogue {
+            Some(k) if book::of(eq).species.name == "lens" => self.instrumented(&super::dialogue::apply(eq, k)),
+            _ => self.instrumented(eq),
+        }
+    }
+
+    /// `eq` in the song's drawn instruments only (no listening between voices).
+    fn instrumented(&self, eq: &Equation) -> Equation {
         match &self.instruments {
             Instruments::V1(p) => super::timbre_v1::dress(eq, p),
             Instruments::V2(p) => super::timbre::dress(eq, p),
             Instruments::None => eq.clone(),
+        }
+    }
+
+    /// The text the composer judges a stage by: what it plays, except that from version 3 the voices' listening
+    /// (dialogue.rs) is left out, so that a seed composes the same moves at version 3 as at version 2 and only the
+    /// counter's line differs. Versions 1 and 2 read the played text, as they always did.
+    pub fn judged_text(&self, st: &Stage) -> String {
+        match self.dialogue {
+            None => st.text.clone(),
+            Some(_) if !self.dresses(&st.eq) => st.text.clone(),
+            Some(_) => self.instrumented(&st.eq).song_text(&self.comment(st.index, &st.summary)),
         }
     }
 
@@ -2105,7 +2133,7 @@ impl Composer {
         let explore = book::of(base).species.explore;
         let fits: Vec<&'static book::Book> = book::all()
             .iter()
-            .filter(|b| b.species.name != here && b.species.explore == explore)
+            .filter(|b| b.species.name != here && b.species.explore == explore && b.species.drawn)
             .filter(|b| bpm as f64 >= b.species.bpm.0 as f64 * 0.88 && bpm as f64 <= b.species.bpm.1 as f64 * 1.12)
             .collect();
         if fits.is_empty() {
@@ -2159,7 +2187,7 @@ impl Composer {
         }
         let mut base = prev.eq.clone();
         remove_fill(&mut base);
-        let prev_song = Song::parse(&prev.text).expect("every stage parses");
+        let prev_song = Song::parse(&self.judged_text(&prev)).expect("every stage parses");
         let prev_prof = audible::profile(&prev_song);
 
         let bk = is_book(&base);
@@ -2624,7 +2652,7 @@ impl Composer {
         set_clock(&mut eq, k);
         let text = self.dressed(&eq).song_text(&self.comment(k, &summary));
         let song = Song::parse(&text).unwrap_or_else(|e| panic!("the ending does not parse: {e}\n{text}"));
-        let prev_song = Song::parse(&prev.text).expect("every stage parses");
+        let prev_song = Song::parse(&self.judged_text(&prev)).expect("every stage parses");
         let audibility = audible::change(&audible::profile(&prev_song), &audible::profile(&song)).total();
         let score = stage_score(&song);
         let changed = diff(&prev.eq, &eq);

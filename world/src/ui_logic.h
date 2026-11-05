@@ -19,14 +19,14 @@ namespace ui {
 
 enum class Action {
   None, PlayPause, Restart, SeekBack, SeekForward, VolumeUp, VolumeDown, NextSong, PrevSong,
-  ToggleLoop, ToggleMenu, ToggleHelp, Fullscreen, Escape, ToggleEquation, SaveStream,
+  ToggleLoop, ToggleMenu, ToggleHelp, Fullscreen, Escape, ToggleEquation, SaveStream, MarkBad,
 };
 
 // Windows virtual-key codes, by value so this header needs no windows.h (the test checks them
 // against VK_*).
 enum Key : int {
   kKeyTab = 0x09, kKeyEscape = 0x1B, kKeySpace = 0x20, kKeyLeft = 0x25, kKeyUp = 0x26, kKeyRight = 0x27,
-  kKeyDown = 0x28, kKeyE = 'E', kKeyS = 'S', kKeyH = 'H', kKeyL = 'L', kKeyM = 'M', kKeyN = 'N', kKeyP = 'P', kKeyR = 'R', kKeyF11 = 0x7A,
+  kKeyDown = 0x28, kKeyB = 'B', kKeyE = 'E', kKeyS = 'S', kKeyH = 'H', kKeyL = 'L', kKeyM = 'M', kKeyN = 'N', kKeyP = 'P', kKeyR = 'R', kKeyF11 = 0x7A,
 };
 
 // repeats: whether holding the key acts again (seek and volume do; toggles do not).
@@ -42,6 +42,7 @@ inline const std::vector<Shortcut>& Shortcuts() {
     { kKeyM, Action::ToggleMenu, false },    { kKeyH, Action::ToggleHelp, false },
     { kKeyF11, Action::Fullscreen, false },  { kKeyEscape, Action::Escape, false },
     { kKeyE, Action::ToggleEquation, false }, { kKeyS, Action::SaveStream, false },
+    { kKeyB, Action::MarkBad, false },
   };
   return s;
 }
@@ -70,6 +71,7 @@ inline const std::vector<HelpRow>& HelpRows() {
     { "H", "This card", { Action::ToggleHelp } },
     { "E", "The live equation (Stream): compact, full, hidden", { Action::ToggleEquation } },
     { "S", "Save the last stages as a song (Stream)", { Action::SaveStream } },
+    { "B", "Mark the last stages as bad, for the generator to learn from (Stream)", { Action::MarkBad } },
     { "F11", "Fullscreen", { Action::Fullscreen } },
     { "Esc", "Close the menu, then quit (asks first)", { Action::Escape } },
     { "Wheel", "Over the seek bar: scrub", {} },

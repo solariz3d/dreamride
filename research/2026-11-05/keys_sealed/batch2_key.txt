@@ -1,0 +1,13 @@
+clip_01.wav = phrase_s836308_1-3 (scaled -4.25 dB)
+clip_02.wav = now_s277577_1-3 (scaled -4.18 dB)
+clip_03.wav = phrase_s962092_1-3 (scaled -1.82 dB)
+clip_04.wav = phrase_s633254_1-3 (scaled 0.00 dB)
+clip_05.wav = now_s453578_1-3 (scaled -10.44 dB)
+clip_06.wav = phrase_s674561_1-3 (scaled -8.89 dB)
+clip_07.wav = now_s621305_1-3 (scaled -5.84 dB)
+clip_08.wav = now_s298883_1-3 (scaled -6.17 dB)
+clip_09.wav = now_s760406_1-3 (scaled -0.67 dB)
+clip_10.wav = now_s498801_1-3 (scaled -9.33 dB)
+clip_11.wav = phrase_s108809_1-3 (scaled -4.76 dB)
+clip_12.wav = phrase_s756936_1-3 (scaled -10.36 dB)
+nonce 9d5f6f8a13417f85

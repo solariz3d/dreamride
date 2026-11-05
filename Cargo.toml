@@ -28,3 +28,7 @@ path = "src/bin/luminesce-compose.rs"
 [[bin]]
 name = "luminesce-stream"
 path = "src/bin/luminesce-stream.rs"
+
+[[bin]]
+name = "luminesce-measure"
+path = "src/bin/luminesce-measure.rs"

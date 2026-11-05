@@ -748,3 +748,20 @@ mod c_abi {
         }
     }
 }
+
+/// Found 2026-11-05 saving a lens stretch for the dialogue A/B: a stage-local definition named `T` (the lens's
+/// fractal `T(u)`, unshared when a stage of the stretch lacks it) was renamed `T_i`, the name of that stage's own time,
+/// and the saved song did not parse ("'T_1' is defined twice"). Every stretch of a lens song must save.
+#[test]
+fn every_lens_stretch_saves() {
+    for seed in 1..=12u64 {
+        for version in [2u32, 3] {
+            let mut c = Composer::with_version(Seed::Book(seed), version).expect("composer");
+            c.ensure(23);
+            for w in 0..c.stages().len().saturating_sub(3) {
+                luminesce::stream::save_text(&c.stages()[w..w + 4], c.roster(), &c.origin, c.seed())
+                    .unwrap_or_else(|e| panic!("seed {seed} v{version} stages {}-{}: {e}", w + 1, w + 4));
+            }
+        }
+    }
+}

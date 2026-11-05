@@ -3048,13 +3048,24 @@ static void PollStream(double now) {
 }
 
 // S: the last four stages heard (the playing one included) as one song in examples\, where the library finds it.
-static void SaveStreamStretch(double now) {
+// B (bad = true): the same stretch and seed into judged\bad\ beside examples\, out of the library: the keeper's ear
+// marking a roll that should not have happened, for the generator to be measured against (2026-11-05).
+static void SaveStreamStretch(double now, bool bad = false) {
   if (!g_streaming || !g_stream.s || g_lib.dirs.empty()) return;
   uint64_t cur = StageAtSeconds(now);
   uint32_t count = (uint32_t)std::min<uint64_t>(4, cur + 1);
   uint64_t first = cur + 1 - count;
   namespace fs = std::filesystem;
   fs::path dir = fs::u8path(g_lib.dirs[0]);
+  if (bad) {
+    dir = dir.parent_path() / "judged" / "bad";
+    std::error_code mk;
+    fs::create_directories(dir, mk);
+    if (mk) {
+      ToastStream("Could not mark it: cannot create " + dir.u8string() + ": " + mk.message(), true, now);
+      return;
+    }
+  }
   std::string name = ui::StreamSaveName(g_stream.info.seed, first + 1, cur + 1,
                                         [&](const std::string& n) { std::error_code ec; return fs::exists(dir / fs::u8path(n), ec); });
   std::string path = (dir / fs::u8path(name)).u8string();
@@ -3068,7 +3079,7 @@ static void SaveStreamStretch(double now) {
     const bool seedSaved = lm_stream_save_seed(g_stream.s, (dir / fs::u8path(seedName)).u8string().c_str(), serr, sizeof(serr)) != 0;
     if (!seedSaved) printf("stream: no seed file: %s\n", serr);
     char msg[256];
-    snprintf(msg, sizeof(msg), u8"Saved stages %llu–%llu as %s%s%s", (unsigned long long)first + 1, (unsigned long long)cur + 1, name.c_str(),
+    snprintf(msg, sizeof(msg), bad ? u8"Marked stages %llu–%llu as bad: judged\\bad\\%s%s%s" : u8"Saved stages %llu–%llu as %s%s%s", (unsigned long long)first + 1, (unsigned long long)cur + 1, name.c_str(),
              seedSaved ? ", and the whole seed as " : "", seedSaved ? seedName : "");
     printf("stream: %s\n", msg);
     ToastStream(msg, false, now);
@@ -5539,6 +5550,7 @@ static void DoAction(ui::Action a) {
     case ui::Action::Escape: if (ui::OnEscape(g_ui.ov, shown) == ui::EscResult::Quit) g_running = false; break;
     case ui::Action::ToggleEquation: g_stream.eqMode = mathui::NextEqMode(g_stream.eqMode); return;  // compact, full, hidden: the menu stays
     case ui::Action::SaveStream: SaveStreamStretch(g_play.now); return;
+    case ui::Action::MarkBad: SaveStreamStretch(g_play.now, true); return;
   }
   g_ui.idle = 0;  // the overlay comes back to show what the key did
 }

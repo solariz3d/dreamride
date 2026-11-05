@@ -1,0 +1,53 @@
+# Saved from a Dreamride stream (from the bounce species, seed 187301, seed 187301): stages 1 to 1, 8 bars.
+#
+# Stage 1: the seed opens with the lead.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 124
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 32
+
+Q = floor(t / 32)
+K = 2
+c = 5
+h(d) = K + floor((12d + c) / 7)
+bk(u, e) = floor(log2(1 - min(u, 7.99) / 8) / log2(e))
+bph(u, e) = (u - 8 + 8 e^bk(u, e)) / (8 (1 - e) e^bk(u, e))
+hd(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr(i) = K + mod((hd(Hb, i) + Ho) Hm, 12)
+Hv(m, i) = K + 6m - 16 + hd(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+nr(x, p) = p + 12 floor((x - p) / 12 + 0.5)
+mn(x, a, b) = if(abs(x - a) <= abs(x - b), a, b)
+sc(x, i) = mn(x, mn(x, nr(x, Hr(i)), nr(x, Hv(0, i))), mn(x, nr(x, Hv(1, i)), nr(x, Hv(2, i))))
+Hm = 7
+Ho = -1
+Hb = 1166442200553322
+Hx = 3333334444441143
+Hy = 2255555577553333
+Hz = 6688448888884466
+T_0 = t - 0
+Mu_0 = mod(T_0, 8)
+Mb_0 = sc(h(13 - min(bk(Mu_0, 0.72), 6)) - 12, floor(T_0 / 2)) + 2 * 2^(-10 bph(Mu_0, 0.72)) cos(2 tau bph(Mu_0, 0.72))
+b_0 = frac(T_0)
+
+voice lead {
+  pitch = Mb_0
+  gate = (bk(Mu_0, 0.72) < 12)(0.55 - bph(Mu_0, 0.72))
+  gain = 0.1841
+  pan = 0.1
+  reverb = 0.35
+  delay = 0.25
+  wave = additive
+  partials = 0, -9.8, -11.6, -17.2, -18.9, -23.9, -24.5, -28.5, -28.3, -31.7, -31
+  attack = 2.72
+  decay = 661.7
+  sustain = 0.05
+  release = 330.65
+  drive = 0.82
+  rolloff = 660
+}

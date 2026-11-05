@@ -206,10 +206,15 @@ fn every_book_stage_is_audible_within_the_budget_and_never_repeats() {
     for seed in [1u64, 2, 3, 4, 5] {
         let c = chain(seed, 41);
         let profiles: Vec<_> = c.stages().iter().map(|s| profile(&Song::parse(&s.text).unwrap())).collect();
+        // The recorded audibility is what the composer measured: the played text up to version 2; from version 3 the
+        // stage without the voices' listening (Composer::judged_text, docs/dialogue.md), so a seed takes the same moves
+        // at both versions. The played change (x) must still be audible.
+        let judged: Vec<_> = c.stages().iter().map(|s| profile(&Song::parse(&c.judged_text(s)).unwrap())).collect();
         for (i, w) in profiles.windows(2).enumerate() {
             let s = &c.stages()[i + 1];
             let x = change(&w[0], &w[1]).total();
-            assert!((x - s.audibility).abs() < 1e-9);
+            let j = change(&judged[i], &judged[i + 1]).total();
+            assert!((j - s.audibility).abs() < 1e-9, "seed {seed} stage {}: recorded {} measured {j}", s.index + 1, s.audibility);
             assert!(x >= THRESHOLD, "seed {seed} stage {} changes by {x:.2}: {}", s.index + 1, s.summary);
             all.push(x);
         }
