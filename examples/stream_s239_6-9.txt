@@ -1,0 +1,156 @@
+# Saved from a Dreamride stream (from the oneline species, seed 239, seed 239): stages 6 to 9, 32 bars.
+#
+# Stage 6: turn: a new melody, oneline/lead.four; the kick comes in; into the seam, oneline/seam.sweep.
+# Stage 7: return: the drop: the hat, clap and perc return; into the seam, oneline/seam.sweep.
+# Stage 8: intro: it thins to the counter, lead and clap; a new melody, oneline/lead.revealed.
+# Stage 9: build: the kick comes in.
+#
+# Each stage's definitions carry its number (M_0, M_1, ...) and its own time T_i = t - 32 i; Q = floor(t / 32) picks the stage.
+
+bpm 161
+reverb_size 0.72
+reverb_predelay 18
+delay_beats 0.75
+delay_feedback 0.3
+warmth 0.2
+beats 128
+
+Q = floor(t / 32)
+K = -2
+c = 2
+h(d) = K + floor((12d + c) / 7)
+ru(m) = (mod(m, 2) == 0) + (mod(m, 4) == 0) + (mod(m, 8) == 0) + (mod(m, 16) == 0)
+hd(N, i) = mod(floor(N / 10^(15 - mod(i, 16))), 10)
+Hr(i) = K + mod((hd(Hb, i) + Ho) Hm, 12)
+Hv(m, i) = K + 6m - 16 + hd(if(m == 0, Hx, if(m == 1, Hy, Hz)), i)
+Hc(m, i) = 12 floor(m / 4) + if(mod(m, 4) == 0, Hv(0, i) - 1 - mod(Hv(0, i) - 1 - Hr(i), 12), Hv(mod(m, 4) - 1, i))
+Hm = 7
+Ho = -4
+Hb = 4444333344440055
+Hx = 2222000022224422
+Hy = 1111555511115533
+Hz = 6666777766667733
+T_0 = t - 0
+Zv_0(k) = if(mod(k, 4) == 0, Hr(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc(7 - ru(floor(k / 4)), floor(k / 16)) + 12, Hv(1 + (mod(k, 4) == 3), floor(k / 16))))
+Zl_0 = Zv_0(floor(8T_0))
+Zc_0 = Hr(floor(T_0 / 2)) - 24 + 12 mod(floor(2T_0), 2) - 5 (ru(floor(2T_0)) >= 3)
+Zz_0 = 0.5 - frac(T_0)
+sweep_0 = Hc(floor(16 (clamp(T_0, 30, 31.99) - 30) / 3.2), 15)
+T_1 = t - 32
+Zv_1(k) = if(mod(k, 4) == 0, Hr(floor(k / 16)) - 24, if(mod(k, 4) == 2, Hc(7 - ru(floor(k / 4)), floor(k / 16)) + 12, Hv(1 + (mod(k, 4) == 3), floor(k / 16))))
+Zl_1 = Zv_1(floor(8T_1))
+Zc_1 = Hr(floor(T_1 / 2)) - 24 + 12 mod(floor(2T_1), 2) - 5 (ru(floor(2T_1)) >= 3)
+Zz_1 = 0.5 - frac(T_1)
+Zh_1 = 0.5 - frac(2T_1)
+Zx_1 = (mod(floor(T_1), 2) == 1)(0.5 - frac(T_1))
+Zy_1 = (ru(floor(4T_1)) >= 3)(0.5 - frac(4T_1))
+sweep_1 = Hc(floor(16 (clamp(T_1, 30, 31.99) - 30) / 3.2), 15)
+T_2 = t - 64
+Zm_2(m) = Hc(7 - ru(m), floor(m / 4))
+Zl_2 = Zm_2(floor(2T_2)) + (Zm_2(floor(2T_2) + 1) - Zm_2(floor(2T_2))) smooth((frac(2T_2) - 0.6) / 0.4)
+Zc_2 = Hr(floor(T_2 / 2)) - 24 + 12 mod(floor(2T_2), 2) - 5 (ru(floor(2T_2)) >= 3)
+Zx_2 = (mod(floor(T_2), 2) == 1)(0.5 - frac(T_2))
+T_3 = t - 96
+Zm_3(m) = Hc(7 - ru(m), floor(m / 4))
+Zl_3 = Zm_3(floor(2T_3)) + (Zm_3(floor(2T_3) + 1) - Zm_3(floor(2T_3))) smooth((frac(2T_3) - 0.6) / 0.4)
+Zc_3 = Hr(floor(T_3 / 2)) - 24 + 12 mod(floor(2T_3), 2) - 5 (ru(floor(2T_3)) >= 3)
+Zz_3 = 0.5 - frac(T_3)
+Zx_3 = (mod(floor(T_3), 2) == 1)(0.5 - frac(T_3))
+
+voice counter {
+  pitch = if(Q == 0, Zc_0, if(Q == 1, Zc_1, if(Q == 2, Zc_2, Zc_3)))
+  gate = if(Q == 0, 0.7 - frac(2T_0), if(Q == 1, 0.7 - frac(2T_1), if(Q == 2, 0.7 - frac(2T_2), 0.7 - frac(2T_3))))
+  gain = 0.0954
+  pan = -0.1
+  wave = additive
+  partials = 0.2, -11.2, -4.9, -17.6, -14.8, -26.6, -21.5, -31.5, -25.2, -34.5
+  attack = 3.9
+  decay = 186.52
+  sustain = 0.3
+  release = 195.95
+  cutoff = if(Q == 0, 1607.9, if(Q == 1, 1607.9, if(Q == 2, 1607.9, 1607.9)))
+  filter_env = 3.11
+  filter_decay = 171.68
+  rolloff = 660
+}
+
+voice lead {
+  pitch = if(Q == 0, Zl_0, if(Q == 1, Zl_1, if(Q == 2, Zl_2, Zl_3)))
+  gate = if(Q == 0, frac(T_0 / 16) < 0.985, if(Q == 1, frac(T_1 / 16) < 0.985, if(Q == 2, frac(T_2 / 8) < 0.96, frac(T_3 / 8) < 0.96)))
+  gain = 0.0921
+  pan = 0.05
+  reverb = 0.4
+  delay = 0.25
+  wave = additive
+  partials = 0, -8.1, -1.7, -7.9, -5.4, -13.9, -11.1
+  attack = 11.83
+  decay = 300
+  sustain = 0.89
+  release = 221.02
+  cutoff = if(Q == 0, 5010.35, if(Q == 1, 5010.35, if(Q == 2, 5010.35, 5010.35)))
+  detune = 13.75
+  drive = 0.5
+  rolloff = 3224.21
+}
+
+drum kick {
+  trigger = if(Q == 0, Zz_0, if(Q == 1, Zz_1, if(Q == 2, 0, Zz_3)))
+  gain = 0.6082
+  kind = dash
+  from = 252.42
+  to = 50.07
+  dash = 24.81
+  hold = 20.87
+  decay = 110.55
+  length = 425.5
+  partials = 0, -13, -14.4, -15.8
+  rolloff = 660
+}
+
+drum clap {
+  trigger = if(Q == 0, 0, if(Q == 1, Zx_1, if(Q == 2, Zx_2, Zx_3)))
+  gain = 0.2908
+  reverb = 0.2
+  kind = dash
+  from = 851.98
+  to = 217.53
+  dash = 12.18
+  hold = 3.14
+  decay = 87.99
+  length = 197.72
+  partials = 0, -20.6, -13.1, -12.3, -16
+  rolloff = 660
+}
+
+drum hat {
+  trigger = if(Q == 0, 0, if(Q == 1, Zh_1, if(Q == 2, 0, 0)))
+  amp = if(Q == 0, 0, if(Q == 1, 0.4 + 0.15 ru(floor(2T_1)), if(Q == 2, 0, 0)))
+  gain = 2.8
+  pan = 0.25
+  kind = hat
+  decay = 20.62
+  length = 78.32
+}
+
+drum perc {
+  trigger = if(Q == 0, 0, if(Q == 1, Zy_1, if(Q == 2, 0, 0)))
+  amp = if(Q == 0, 0, if(Q == 1, 0.5 + 0.25 (ru(floor(4T_1)) - 3), if(Q == 2, 0, 0)))
+  gain = 0.1454
+  pan = -0.3
+  reverb = 0.25
+  kind = hat
+  decay = 186.13
+  length = 247.14
+}
+
+voice rise {
+  wave = additive
+  partials = 0, -120, -9.5, -120, -14
+  rolloff = 660
+  pitch = if(Q == 0, sweep_0, if(Q == 1, sweep_1, if(Q == 2, 0, 0)))
+  gate = if(Q == 0, T_0 >= 30, if(Q == 1, T_1 >= 30, if(Q == 2, 0, 0)))
+  gain = 0.1
+  attack = 2
+  release = 80
+  reverb = 0.3
+}

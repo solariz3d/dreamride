@@ -208,6 +208,50 @@ stage 1). With key distance alone it is still falsified: bad 2 of 6, good 4 of 9
   at 34.6 s is specific to that move, not a property of key changes.
 - **What it does not rule out:** the registered measures. They have not been scored.
 
+**Amended 2026-11-06 ~03:25, before anything was scored.** New marks arrived on the 6th:
+- good: 647878 and 239;
+- bad: 352849, 456771, 81735, 990347, and **239 stages 8 to 11**.
+
+Seed 239 is the first song on both sides: saved good at 1–4, 4–7 and 6–9, marked bad at 8–11. The keeper: *"the last
+good one was the best one, and even better, there was a stage of it where it went bad that I also marked"*.
+
+The registration did not foresee a song on both sides. The rule, set before scoring: a song counts once on each side
+it was judged on, with only the stretches judged that way. The batch 1 ratings join their sides (bad: clips 1, 2, 3
+and 7; good: 4 and 6), copied from `research/2026-11-05/batch1/` into `judged/bad/` and `judged/good/`.
+`luminesce-measure` reads `judged/good/` as well as `examples/`. Nothing else changes: the measures, directions,
+thresholds and families are as registered.
+
+### SCORED 2026-11-06 ~03:28: neither family holds; neither is falsified
+
+`cargo run --release --bin luminesce-measure -- .`: 16 good stretches from 11 songs, 15 bad stretches from 11 songs
+(five older saves skipped, because no version reproduces them as saved). AUC, the probability that a bad song lies
+further in the registered direction than a good one:
+
+| measure | direction | AUC |
+|---|---|---|
+| self-surprise | bad higher | 0.636 |
+| roughness | bad higher | 0.345 |
+| repetition | bad lower | 0.616 |
+| macroharmony | bad higher | **0.814** |
+| centricity | bad lower | 0.372 |
+| conjunct | bad lower | 0.368 |
+
+- **First family: 0 of 3 at AUC ≥ 0.70.** Self-surprise and repetition are at least 0.60, so it is not falsified. It
+  does not hold.
+- **Theory family: 1 of 3** (macroharmony). Not falsified, does not hold.
+- **Read with the warning registered before the run.** Conjunct motion was named in advance as noisy for oneline,
+  whose lead leaps by design. Oneline is 5 of the 11 good songs, so "bad songs move more by step" mostly says "bad
+  songs are more often not oneline". The three measures below 0.40 are not evidence of the opposite rule: they were not
+  predicted, and a species confound explains at least one of them.
+- **Seed 239, the same song on both sides.** Good stretches 6, 7 and 6 pitch classes; the stretch that went bad, 9.
+  Self-surprise 3.36 against 1.30, 1.87 and 3.15.
+
+**New hypothesis M, registered now, from this scoring (so this data is not evidence for it).** Bad stretches use more
+pitch classes than good ones. The measure is macroharmony as defined above, scored on judgments made after
+2026-11-06 03:28 only.
+- **Holds** if AUC ≥ 0.70 over at least 6 new bad and 6 new good songs.
+- **Falsified** if AUC < 0.60.
+
 **The prediction holds** if at least two of the three separate bad from good in the stated direction, each with
 bad-over-good AUC at least 0.70.
 

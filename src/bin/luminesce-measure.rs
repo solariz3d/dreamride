@@ -137,10 +137,12 @@ fn measure_at(dir: &Path, j: &Judged, seed: Seed, version: u32) -> Result<Measur
 }
 
 fn run(repo: &Path) -> Result<(), String> {
-    let groups = [("good", repo.join("examples")), ("bad", repo.join("judged").join("bad"))];
+    // Side 0 is good (the S saves in examples\, and judged\good\: rated batch clips), side 1 bad (judged\bad\).
+    let groups = [(0, "good", repo.join("examples")), (0, "good", repo.join("judged").join("good")), (1, "bad", repo.join("judged").join("bad"))];
     let mut values: Vec<Vec<(u64, [f64; 6])>> = vec![Vec::new(), Vec::new()];
     println!("{:<34} {:>4} {:>8} {:>9} {:>10} {:>12} {:>10} {:>8}", "stretch", "v", "surprise", "roughness", "repetition", "macroharmony", "centricity", "conjunct");
-    for (g, (label, dir)) in groups.iter().enumerate() {
+    for (g, label, dir) in groups.iter() {
+        let g = *g;
         println!("-- {label} ({})", dir.display());
         for j in judged_in(dir)? {
             match measure_one(dir, &j) {

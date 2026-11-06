@@ -1,4 +1,85 @@
-# Dreamride handoff, 2026-11-05 (laptop, ~00:05 to ~07:40 local)
+# Dreamride handoff
+
+## UPDATE 2026-11-06 (laptop, ~03:00 to ~04:30 local): read this first, then the 2026-11-05 handoff below
+
+The keeper closed Consonance on the laptop for the night after this. The 2026-11-05 work **is committed and pushed**
+(`cd2ea5f`, 2026-11-05 07:39, under the keeper's name, sealed keys included). The line "Nothing from this session is
+committed" further down was true when it was written, and no longer is. **This update's work is uncommitted**
+(`git status`).
+
+### What happened
+
+1. **New judgments from the app.**
+   - Good (S): seed 647878 (oneline) and **seed 239** (oneline).
+   - Bad (B): 352849 (bounce), 456771 (oneline), 81735 (bounce), 990347 (dialogue), and **seed 239 at stages 8 to 11**.
+   - Seed 239 is the first song on both sides. Saved good at 1–4, 4–7 and 6–9; marked bad at 8–11. The keeper: *"the
+     last good one was the best one, and even better, there was a stage of it where it went bad that I also marked"*.
+   - Seed 239 is a rare draw: the app's seeds are uniform in 1..999999 (`FreshStreamSeed`), so one in about 4,200
+     songs is at or below 239.
+2. **The registration was scored** (`docs/what_makes_music_bad.md`, "SCORED 2026-11-06").
+   - The judged set: 11 good and 11 bad songs. Batch 1's rated clips were copied into `judged/bad/` (1, 2, 3, 7) and
+     `judged/good/` (4, 6), and `luminesce-measure` now reads `judged/good/` as well.
+   - A song on both sides counts once on each side, with only the stretches judged that way. The rule was set before
+     scoring.
+   - **Neither family holds; neither is falsified.** Only macroharmony separates the two sides (AUC 0.814: bad
+     stretches use more pitch classes). Self-surprise is 0.636 and repetition 0.616. Roughness, centricity and
+     conjunct motion lie below 0.40, and at least conjunct motion is confounded by species (oneline leaps by design,
+     and is 5 of the 11 good songs).
+   - **Hypothesis M is registered** for judgments made after 2026-11-06 03:28 only: bad stretches use more pitch
+     classes. It holds at AUC ≥ 0.70 over at least 6 new bad and 6 new good songs, and is falsified below 0.60.
+3. **Seed 239, hand-composed: reference #2** (`docs/references.md`, `examples/reference_s239_v3_hand_composed.txt`).
+   - At the keeper's ask (*"i love the kicks and how the arps go at 1 min"*), the lead was chosen by hand from stage 8.
+     The song's best idea, the arps (`oneline/lead.four`), had played 24 seconds before a gliding melody replaced it
+     for a minute.
+   - **The changes, by stage:**
+     - stage 8: one stage of the bare melody, a reveal;
+     - stages 9–10: the same curve in triplets, a contrast from its own material;
+     - stages 11–14: the arps return at the peak.
+   - **Unchanged:** the kick (byte-identical, sha256 `e3aef709…` in both), stages 1–7, and the coda.
+   - **Measured:** pitch classes per stage 9–14 went from 9 9 9 9 8 8 to 6 6 5 5 7 7.
+   - The keeper: *"what that song does good is insane i like it"*. The script is
+     `research/2026-11-05/tools/src/bin/hand239.rs`.
+4. **Downpitch: no.** Tape-style (−2 semitones and slower, 143 bpm) and musical (−2 semitones, `reference 392`)
+   versions were both "bad". The pitch-knob question from 2026-11-04 is answered for now at that amount.
+5. **The laptop's heat was Consonance, not Dreamride and not a fault.**
+   - The 95–100 °C readings came from pane E's lap L144 track-builder "timing session", held by
+     `consonance/tools/heavy-run.js`. It renders `app/test/release-frame.test.js` in headless Chrome with
+     `--disable-frame-rate-limit`, repeatedly, which drew 108 W from the GPU, on top of all-core builds.
+   - When nothing runs the laptop idles at about 60 °C. **No fault.**
+   - The laptop is in dGPU-only mode, which adds idle heat. Hybrid mode in Legion Space would remove it.
+   - **For Dreamride sessions on the laptop, cap builds:** `cargo build -j 8`.
+
+### What the session taught, for the plan in §4 below
+
+**Reference #2 is the plan in miniature:** a song keeps its identity, its contrast comes from its own material, and
+its climax is the return of what the listener loved. One judgment on top of a good roll did what the composer
+cannot. The new generator's job is to make those choices itself (song plan, motif across the song, arrangement that
+follows the plan: §4.1, 4.3 and 4.4). **The open question in §1 is still open:** is the "kid learning FL" sound the
+writing or the sound? Reference #2 suggests that the writing (the form) matters a great deal. The keeper has not said.
+
+### Next, in order
+
+1. **The keeper answers the writing-or-sound question**, or a blind pair splits it (§4.0).
+2. **Start the song planner (§4.1)** as a new generator version, with reference #2's form as its first target: can the
+   planner, given seed 239's material, choose identity, contrast and return on its own?
+3. **Keep marking (S and B).** Each new judgment counts toward hypothesis M.
+4. **The blind sets still waiting** (§5): batch 2 (phrase species against the current generator), batch 1 clips 8–16,
+   and the dialogue A/B. The desktop folders moved: everything is now in
+   `C:\Users\zackn\OneDrive\Desktop\Dreamride\`.
+
+### Files this update added or changed
+
+- **Docs:** `docs/what_makes_music_bad.md` (the 06 amendment, the score, hypothesis M), `docs/references.md`
+  (reference #2), and this file.
+- **The runner:** `src/bin/luminesce-measure.rs` (reads `judged/good/`).
+- **Judged songs:** `judged/good/` and `judged/bad/` (the new marks and batch 1's rated clips), and `examples/` (the
+  new S saves and the reference #2 file).
+- **Tools:** `research/2026-11-05/tools/src/bin/hand239.rs` (reference #2) and `stagepcs.rs` (pitch classes per
+  stage of a whole-song file). Build them with `cargo build -j 8 --release` in that folder.
+
+---
+
+# The 2026-11-05 handoff (laptop, ~00:05 to ~07:40 local)
 
 Written at the keeper's ask before leaving: *"lets do a comprehensive plan to put as a handoff within the repo for
 dreamride we will continue work on it another time"*. Read this first, then the documents it points to. Everything
@@ -170,8 +251,8 @@ following the tension curve, and the drum sound.
 
 | what | clips | key (sealed, do not open before rating) | its doc |
 |---|---|---|---|
-| batch 2: 6 phrase-species clips and 6 from the current generator, shuffled | `Desktop\Dreamride rating batch 2\clip_01..12` | `research/2026-11-05/keys_sealed/batch2_key.txt`, sha256 `f4e40877…` | `docs/phrase_species.md` |
-| batch 1, clips 8 to 16 (1 to 7 are rated and opened) | `Desktop\Dreamride rating batch\clip_08..16` | `…/batch1_key.txt`, sha256 `a116b7d7…` | `docs/what_makes_music_bad.md` |
+| batch 2: 6 phrase-species clips and 6 from the current generator, shuffled | `C:\Users\zackn\OneDrive\Desktop\Dreamride\Dreamride rating batch 2\clip_01..12` | `research/2026-11-05/keys_sealed/batch2_key.txt`, sha256 `f4e40877…` | `docs/phrase_species.md` |
+| batch 1, clips 8 to 16 (1 to 7 are rated and opened) | `C:\Users\zackn\OneDrive\Desktop\Dreamride\Dreamride rating batch\clip_08..16` | `…/batch1_key.txt`, sha256 `a116b7d7…` | `docs/what_makes_music_bad.md` |
 | the version 3 dialogue A/B | `Downloads\dreamride_ab\dialogue\clip_1.wav, clip_2.wav` | `…/dialogue_ab_key.txt`, sha256 `97df6463…` | `docs/dialogue.md` |
 
 Opened already, kept for the record: `…/aware_ab_key.txt` (sha256 `daac263d…`). Rating batch 1's clips 8 to 16 would
@@ -223,7 +304,10 @@ nobody else's reading them matters.
   already true of `bounce/kick.half`. Ask what was weird.
 - **Clip 6's hat:** separate the sound from the awareness with one more pair (the original against the noise hat
   alone).
-- **The pitch knob** (from 2026-11-04): tape-style or musical transpose? Unanswered.
+- **The pitch knob** (from 2026-11-04): partly answered on 2026-11-06. Both −2 semitone versions of reference #2,
+  tape-style and musical, were "bad". Downpitching is not wanted at that amount.
+- **Reference #2** (2026-11-06): seed 239, hand-composed from stage 8 (`docs/references.md`). Its lesson for the new
+  generator is to keep the song's identity and let the climax be its return.
 - **The brightness measure** (from 2026-11-04) cannot hear a pluck's onset. A corrected one needs its own registration.
 - **The dialogue in other species** is superseded by 4.4 if the new generator is built.
 - **Commit and push:** nothing from this session is committed. The keeper decides when, and whether the sealed keys
